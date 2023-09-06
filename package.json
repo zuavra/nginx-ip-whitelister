@@ -1,0 +1,17 @@
+{
+  "name": "nginx-ip-whitelister",
+  "version": "1.0.0",
+  "description": "Authentication backend that works with the Nginx ngx_http_auth_request_module and whitelists remote IP address if a key is provided.",
+  "main": "index.js",
+  "scripts": {
+  },
+  "keywords": [
+    "nginx", "ngx_http_auth_request_module", "ip", "address", "whitelist", "auth", "request"
+  ],
+  "author": "zuavra.net",
+  "license": "MIT",
+  "dependencies": {
+    "connect": "=3.7.0",
+    "dotenv": "=16.3.1"
+  }
+}
