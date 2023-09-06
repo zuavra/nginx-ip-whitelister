@@ -5,7 +5,7 @@ const app = framework();
 const store = new Map();
 
 function logger() {
-    if (process.env.DEBUG === 'yes') {
+    if ('yes' === process.env.DEBUG) {
         console.log(...arguments);
     }
 }
@@ -15,7 +15,6 @@ app.use('/verify', (req, res, next) => {
     const IP = req.headers['x-forwarded-for'];
     const now = new Date().getTime();
     const logPrefix = `[${now}][${IP}][${URI}]`;
-    logger(`${logPrefix} Processing.`);
 
     if (store.has(IP)) {
         const entry = store.get(IP);
@@ -52,3 +51,4 @@ app.use('/ping', (req ,res) => res.end('OK ' + req.socket.remoteAddress));
 
 http.createServer(app).listen(process.env.PORT, process.env.HOST);
 logger(`Listening on ${process.env.HOST}:${process.env.PORT}`);
+logger(process.env);
