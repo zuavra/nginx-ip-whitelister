@@ -14,14 +14,13 @@ app.use('/verify', (req, res, next) => {
     const URI = req.headers['x-original-uri'];
     const IP = req.headers['x-forwarded-for'];
     const now = new Date().getTime();
-    const exp = new Date(now + process.env.VALIDITY_MS).getTime();
     const logPrefix = `[${now}][${IP}][${URI}]`;
     logger(`${logPrefix} Processing.`);
 
     if (store.has(IP)) {
         const entry = store.get(IP);
 
-        if (now >= (entry?.expirationTimestamp || 0)) {
+        if (now >= parseInt(entry?.expirationTimestamp)) {
             store.delete(IP);
             res.statusCode = 403;
             logger(`${logPrefix} Entry found but expired, rejected.`)
@@ -34,6 +33,7 @@ app.use('/verify', (req, res, next) => {
     else {
         const url = new URL(URI, 'https://ignore.this/');
         if ('?' + process.env.KEY === url.search) {
+            const exp = new Date(now + parseInt(process.env.VALIDITY_MS)).getTime();
             store.set(IP, {
                 expirationTimestamp: exp,
             });
