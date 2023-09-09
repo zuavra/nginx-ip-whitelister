@@ -47,7 +47,15 @@ app.use('/verify', (req, res, next) => {
     res.end();
 });
 
-app.use('/ping', (req ,res) => res.end('OK ' + req.socket.remoteAddress));
+app.use('/allow', (req ,res) => {
+    res.statusCode = 200;
+    res.end('ALLOWED');
+});
+
+app.use('/reject', (req ,res) => {
+    res.statusCode = 403;
+    res.end('REJECTED');
+});
 
 http.createServer(app).listen(process.env.PORT, process.env.HOST);
 logger(`Listening on ${process.env.HOST}:${process.env.PORT}`);
