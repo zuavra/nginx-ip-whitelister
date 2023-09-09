@@ -214,3 +214,9 @@ location = /__auth {
 ```
 
 If you're running the app standalone or in a non-networked container please replace `nginx-iw` with the appropriate hostname or IP address.
+
+Additionally, there are several tweaks you can make to the validation URL:
+
+* `/verify` accepts the following query parameters:
+  * `?key=KEY-VALUE` lets you set a key specific to this proxy host (the env key still works as well).
+* When debugging your setup you can use `/allow` instead of `/verify` to always pass the check and `/reject` to always fail the check.
