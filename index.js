@@ -2,7 +2,7 @@ require('dotenv').config();
 const framework = require('connect');
 const http = require('http');
 const URL = require('node:url');
-const Logger = require('lib/logger');
+const Logger = require('./lib/logger');
 
 const app = framework();
 const store = new Map();
