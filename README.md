@@ -71,13 +71,32 @@ You may want to use a tool that will restart the app if it fails, but really you
 
 ## Build a Docker image
 
+Use this `Dockerfile`:
+```
+# syntax=docker/dockerfile:1
+
+FROM alpine
+ENV NODE_ENV=production
+
+WORKDIR /opt/nginx-iw
+
+COPY ["package.json", "index.js", "./"]
+
+RUN apk add --update nodejs npm
+RUN npm install --omit=dev
+
+CMD ["node", "index.js"]
+```
+
+Then build the image and publish it to your machine's local image repository, where it's now ready for being used by Docker containers:
+
+
 ```
 $ docker build --tag zuavra/nginx-ip-whitelister .
 ```
 
 Yes, there's a dot at the end of the command.
 
-This will build the image and publish it in your machine's local image repository, where it's now ready for being used by Docker containers.
 
 ## Run a standalone Docker container
 
