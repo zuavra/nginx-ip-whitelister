@@ -61,7 +61,7 @@ app.use('/verify/v1', (req, res) => {
         return res.end();
     }
     const keySource = matched === 1 ? 'proxy value' : 'server value';
-    logger.log(`Key matched ${keySource}.`);
+    logger.hold(`Key matched ${keySource}.`);
 
     // all relevant checks passed, add IP to whitelist
     const now = new Date().getTime();
