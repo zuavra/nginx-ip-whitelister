@@ -6,7 +6,23 @@ It validates Nginx requests against a list of IP addresses. In order for an IP t
 
 This app was designed to be particularly easy to integrate with [Nginx Proxy Manager](https://github.com/NginxProxyManager/nginx-proxy-manager/) running in Docker.
 
-## Use cases
+<!-- TOC -->
+- [1. Use cases](#1-use-cases)
+- [2. Prerequisites](#2-prerequisites)
+- [3. How the validator works](#3-how-the-validator-works)
+- [4. Security considerations](#4-security-considerations)
+- [5. Running as a standalone app](#5-running-as-a-standalone-app)
+- [6. Running with Docker](#6-running-with-docker)
+  - [6.1. Build a Docker image](#61-build-a-docker-image)
+  - [6.2. Run a standalone Docker container](#62-run-a-standalone-docker-container)
+  - [6.3. Run as a companion container to Nginx Proxy Manager](#63-run-as-a-companion-container-to-nginx-proxy-manager)
+- [7. How to integrate with Nginx](#7-how-to-integrate-with-nginx)
+  - [7.1. Nginx configuration](#71-nginx-configuration)
+  - [7.2. Validation URLs and parameters](#72-validation-urls-and-parameters)
+<!-- /TOC -->
+
+
+## 1. Use cases
 
 Say you're visiting a friend or family's home and using their WiFi. You have an Emby or Jellyfin install at your home and you'd like to use it to see a movie together. There are numerous methods of exposing Emby/Jellyfin over the Internet securely, best of which is some kind of encrypted tunnel (a VPN such as Tailscale/Wireguard/OpenVPN, a SSH tunnel etc.) While that allows one device to reach Emby/Jellyfin, it doesn't allow you to cast to a Chromecast or DLNA device in your friend's LAN, because only your device has access to the tunnel.
 
@@ -14,7 +30,7 @@ There are of course solutions for that too, but they are all complicated and go 
 
 The __*nginx-ip-whitelister*__ assumes your Emby/Jellyfin are running behind a publicly-accessible Nginx reverse proxy and takes advantage of the `auth_request` directive to grant access to the public IP you're currently using, effectively allowing everthing in the LAN (**and also allowing whomever might be spoofing that IP or can otherwise get their hands on it**!)
 
-## Prerequisites
+## 2. Prerequisites
 
 In order to use __*nginx-ip-whitelister*__ as intended you must have already accomplished the following:
 
@@ -28,7 +44,7 @@ In order to use __*nginx-ip-whitelister*__ as intended you must have already acc
 
 At this point you can deploy __*nginx-ip-whitelister*__ and add a simple configuration snippet to Nginx that will cause all HTTP requests to Emby/Jellyfin to run against its validator.
 
-## How the validator works
+## 3. How the validator works
 
 Nginx calls `http://[nginx-ip-whitelister-address]/verify` for each HTTP request coming through the reverse proxy, *before* they reach Emby/Jellyfin.
 
@@ -42,7 +58,7 @@ The validator uses this information to respond 200 (let it through) or 403 (bloc
 
 > **Remember** that the whitelist is stored in RAM and will be lost every time you stop or restart the app (or its container).
 
-## Security considerations
+## 4. Security considerations
 
 > Using the IP as the sole means of verifying requests is **not secure**. You run this at your own risk and I assume you understand the implications.
 
@@ -58,7 +74,7 @@ In case you're still foolish enough to use this:
   * **Stop __*nginx-ip-whitelister*__.** This will cut all access instantly, because Nginx will refuse requests if it cannot reach the validating backend.
   * **Change the key** and restart the app/container.
 
-## Run it as a standalone app
+## 5. Running as a standalone app
 
 Copy `.env.example` to `.env` and edit to your liking. Then:
 
@@ -69,7 +85,9 @@ $ node index.js
 
 You may want to use a tool that will restart the app if it fails, but really you may want to consider using Docker.
 
-## Build a Docker image
+## 6. Running with Docker
+
+### 6.1. Build a Docker image
 
 Use this `Dockerfile`:
 ```
@@ -98,7 +116,7 @@ $ docker build --tag zuavra/nginx-ip-whitelister .
 Yes, there's a dot at the end of the command.
 
 
-## Run a standalone Docker container
+### 6.2. Run a standalone Docker container
 
 You can run a Docker container that listens on the host's network interface. Use this if your Nginx or Nginx Proxy Manager are able to communicate directly with the host network.
 
@@ -124,7 +142,7 @@ services:
 
 You can of course also rely on `.env` if you place this in the same dir, omit the `environment:` section, and define the port as `- "${PORT}:${PORT}/tcp"`.
 
-## Run as a companion container to Nginx Proxy Manager
+### 6.3. Run as a companion container to Nginx Proxy Manager
 
 If you're already running Nginx Proxy Manager as a Docker container you will first need to define a network common to both containers:
 
@@ -212,7 +230,9 @@ networks:
       name: nginx-network
 ```
 
-## How to integrate with Nginx
+## 7. How to integrate with Nginx
+
+### 7.1. Nginx configuration
 
 In order to tell Nginx to use __*nginx-ip-whitelister*__ you need to use the `auth_request` directive to validate requests against the correct verification URL, and pass to it the original URI and the remote IP address.
 
@@ -234,7 +254,9 @@ location = /__auth {
 
 If you're running the app standalone or in a non-networked container please replace `nginx-iw` with the appropriate hostname or IP address.
 
-Additionally, there are several tweaks you can make to the validation URL:
+### 7.2. Validation URLs and parameters
+
+There are several tweaks you can make to the validation URL:
 
 * `/verify` accepts the following query parameters:
   * `?key=KEY-VALUE` lets you set a key specific to this proxy host (the env key still works as well).
