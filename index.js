@@ -37,31 +37,36 @@ app.use('/verify/v1', (req, res) => {
         const now = new Date().getTime();
         if (now < parseInt(entry?.expirationTimestamp)) {
             res.statusCode = 200;
-            logger.log('IP found, allowed.');
+            logger.log('IP found. Allowed.');
             return res.end();
         }
         // remove expired entries from store and resume normal checks
         store.delete(REMOTE_IP);
+        logger.hold('IP found but expired.');
+    }
+    else {
+        logger.hold('IP not found.');
     }
 
     // test for key match
     const VISITOR_KEY = URL.parse(ORIGINAL_URI).query;
-    let matched = 0;
+    let matched = false;
     if (VISITOR_KEY) {
-        if (PROXY_KEYS.indexOf(VISITOR_KEY) !== -1) {
-            matched = 1;
+        const locatedKey = PROXY_KEYS.indexOf(VISITOR_KEY);
+        if (locatedKey !== -1) {
+            matched = true;
+            logger.hold(`Key matched proxy key #${locatedKey}.`);
         }
         else if (VISITOR_KEY === process.env.KEY) {
-            matched = 2;
+            matched = true;
+            logger.hold('Key matched server key.');
         }
     }
-    if (matched === 0) {
+    if (!matched) {
         res.statusCode = 403;
-        logger.log('No key, no IP, rejected.');
+        logger.log('No keys matched. Rejected.');
         return res.end();
     }
-    const keySource = matched === 1 ? 'proxy value' : 'server value';
-    logger.hold(`Key matched ${keySource}.`);
 
     // all relevant checks passed, add IP to whitelist
     const now = new Date().getTime();
@@ -70,7 +75,7 @@ app.use('/verify/v1', (req, res) => {
         expirationTimestamp: exp,
     });
     res.statusCode = 200;
-    logger.log('IP added, allowed.');
+    logger.log('IP added. Allowed.');
     return res.end();
 });
 
