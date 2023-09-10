@@ -8,7 +8,17 @@ const Logger = require('lib/logger');
 const app = framework();
 const store = new Map();
 
-app.use('/verify', (req, res) => {
+app.use('/allow', (req ,res) => {
+    res.statusCode = 200;
+    res.end('ALLOWED');
+});
+
+app.use('/reject', (req ,res) => {
+    res.statusCode = 403;
+    res.end('REJECTED');
+});
+
+app.use('/verify/v1', (req, res) => {
     const ORIGINAL_URI = req.headers['x-original-uri'];
     const REMOTE_IP = req.headers['x-forwarded-for'];
 
@@ -60,16 +70,6 @@ app.use('/verify', (req, res) => {
         }
     }
     res.end();
-});
-
-app.use('/allow', (req ,res) => {
-    res.statusCode = 200;
-    res.end('ALLOWED');
-});
-
-app.use('/reject', (req ,res) => {
-    res.statusCode = 403;
-    res.end('REJECTED');
 });
 
 http.createServer(app).listen(process.env.PORT, process.env.HOST);

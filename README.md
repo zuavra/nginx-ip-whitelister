@@ -46,7 +46,7 @@ At this point you can deploy __*nginx-ip-whitelister*__ and add a simple configu
 
 ## 3. How the validator works
 
-Nginx calls `http://[nginx-ip-whitelister-address]/verify` for each HTTP request coming through the reverse proxy, *before* they reach Emby/Jellyfin.
+Nginx calls `http://[nginx-ip-whitelister-address]/verify/v1` for each HTTP request coming through the reverse proxy, *before* they reach Emby/Jellyfin.
 
 Each verification call is told the original Emby/Jellyfin URI and the visitor's remote IP address as HTTP headers.
 
@@ -244,7 +244,7 @@ If you're using Nginx Proxy Manager, edit the proxy host that you're using for E
 auth_request /__auth;
 location = /__auth {
 	internal;
-	proxy_pass http://nginx-iw:3000/verify;
+	proxy_pass http://nginx-iw:3000/verify/v1;
 	proxy_pass_request_body off;
 	proxy_set_header Content-Length "";
 	proxy_set_header X-Original-URI $request_uri;
@@ -258,6 +258,6 @@ If you're running the app standalone or in a non-networked container please repl
 
 There are several tweaks you can make to the validation URL:
 
-* `/verify` accepts the following query parameters:
+* `/verify/v1` accepts the following query parameters:
   * `?key=KEY-VALUE` lets you set a key specific to this proxy host (the env key still works as well).
-* When debugging your setup you can use `/allow` instead of `/verify` to always pass the check and `/reject` to always fail the check.
+* When debugging your setup you can use `/allow` instead of `/verify/v1` to always pass the check and `/reject` to always fail the check.
