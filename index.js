@@ -1,7 +1,6 @@
 require('dotenv').config();
 const framework = require('connect');
 const http = require('http');
-const QS = require('node:querystring');
 const URL = require('node:url');
 const Logger = require('lib/logger');
 
@@ -19,14 +18,14 @@ app.use('/reject', (req ,res) => {
 });
 
 app.use('/verify/v1', (req, res) => {
-    const ORIGINAL_URI = req.headers['x-original-uri'];
-    const REMOTE_IP = req.headers['x-forwarded-for'];
 
-    const VERIFY_OPTIONS = QS.parse(URL.parse(req.url)?.query);
+    const ORIGINAL_URI = req.headers['x-original-uri'] || '';
+    const REMOTE_IP = req.headers['x-forwarded-for'] || '';
+    const PROXY_KEYS = (req.headers['x-nipw-key'] || '').split(/ *, */).filter(x => !!x);
 
     const logger = new Logger();
     logger.addScrubString(process.env.KEY);
-    logger.addScrubString(VERIFY_OPTIONS.key);
+    PROXY_KEYS.map(logger.addScrubString);
     logger.addPrefix(REMOTE_IP);
     logger.addPrefix(ORIGINAL_URI, true);
 
@@ -47,7 +46,7 @@ app.use('/verify/v1', (req, res) => {
         const POTENTIAL_URI_KEY = URL.parse(ORIGINAL_URI).query;
 
         let matched = 0;
-        if (POTENTIAL_URI_KEY === VERIFY_OPTIONS.key) {
+        if (PROXY_KEYS.indexOf(POTENTIAL_URI_KEY) !== -1) {
             matched = 1;
         }
         else if (POTENTIAL_URI_KEY === process.env.KEY) {
