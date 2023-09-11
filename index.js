@@ -21,7 +21,7 @@ app.use('/reject', (req ,res) => {
     res.end('REJECTED');
 });
 
-app.use('/verify/v1', (req, res, next) => {
+app.use('/verify', (req, res, next) => {
     // initialize res.local with session-wide objects
     if (!res.local) res.local = {};
     res.local.store = globalStore;
@@ -30,10 +30,10 @@ app.use('/verify/v1', (req, res, next) => {
     next();
 });
 
-app.use('/verify/v1', M_extract_headers);
-app.use('/verify/v1', M_validate_whitelist);
-app.use('/verify/v1', M_validate_keys);
-app.use('/verify/v1', M_accept_ip);
+app.use('/verify', M_extract_headers);
+app.use('/verify', M_validate_whitelist);
+app.use('/verify', M_validate_keys);
+app.use('/verify', M_accept_ip);
 
 http.createServer(app).listen(process.env.PORT, process.env.HOST);
 globalLogger.log(`Listening on ${process.env.HOST}:${process.env.PORT}.`);
