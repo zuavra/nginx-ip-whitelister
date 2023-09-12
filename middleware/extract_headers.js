@@ -2,7 +2,7 @@ module.exports = (req, res, next) => {
     // extract information sent by the proxy inside headers
     res.local.ORIGINAL_URI = req.headers['x-original-uri'] || '';
     res.local.REMOTE_IP = req.headers['x-forwarded-for'] || '';
-    res.local.PROXY_KEYS = (req.headers['x-nipw-key'] || '').split(/ *, */).filter(x => !!x);
+    res.local.PROXY_KEYS = res.local.arrayHeaders(req.headers['x-nipw-key']);
 
     // populate the logger instance
     res.local.logger.addScrubString(process.env.KEY);

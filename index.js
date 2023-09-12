@@ -26,6 +26,7 @@ app.use('/verify', (req, res, next) => {
     if (!res.local) res.local = {};
     res.local.store = globalStore;
     res.local.logger = new Logger();
+    res.local.arrayHeaders = H => (H || '').split(/ *, */).filter(x => !!x);
 
     next();
 });
