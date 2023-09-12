@@ -18,7 +18,9 @@ This app was designed to be particularly easy to integrate with [Nginx Proxy Man
   - [6.3. Run as a companion container to Nginx Proxy Manager](#63-run-as-a-companion-container-to-nginx-proxy-manager)
 - [7. How to integrate with Nginx](#7-how-to-integrate-with-nginx)
   - [7.1. Nginx configuration](#71-nginx-configuration)
-  - [7.2. Validation URLs and parameters](#72-validation-urls-and-parameters)
+  - [7.2. Validation URLs](#72-validation-urls)
+  - [7.3. Condition headers](#73-condition-headers)
+  - [7.4. Validation logic](#74-validation-logic)
 <!-- /TOC -->
 
 
@@ -254,12 +256,29 @@ location = /__auth {
 
 If you're running the app standalone or in a non-networked container please replace `nginx-iw` with the appropriate hostname or IP address.
 
-### 7.2. Validation URLs and parameters
+### 7.2. Validation URLs
 
-When debugging your setup you can use `/allow` instead of `/verify` to always pass the check, and `/reject` to always fail the check.
+Use `/verify` to call the conditional validator.
 
-You can customize the validation logic with parameters defined as headers in the proxy host config:
+You can also use `/allow` to always pass the check, and `/reject` to always fail the check.
 
-* Use `X-NIPW-Key` to supply a key that only works for this proxy host.
-  * You can use this header multiple times.
-  * The key defined in `.env` still works as usual, across all proxy hosts.
+### 7.3. Condition headers
+
+The following headers can optionally be passed to the validator from Nginx. The header names are case insensitive. Each header can be used multiple times.
+
+> Please don't use commas inside header values unless you mean to split them into multiple values at the commas.
+
+* `x-nipw-key`: Define additional authentication keys that will work alongside with the one defined in `.env`.
+* `x-nipw-netmask-allow`: Define one or more IP network masks to allow. An IP that doesn't match any of these masks will be rejected.
+* `x-nipw-netmask-deny`: Define one or more IP network masks to deny. An IP that matches any of these masks will be rejected. If any `-netmask-allow` header is defined all `-netmask-deny` headers will be ignored.
+
+### 7.4. Validation logic
+
+The logic works in the following order:
+
+* If the validation app cannot be reached by Nginx or returns any status code other than 2xx (including 500 if it malfunctions), request is rejected.
+* If any allow netmasks are defined and the IP doesn't match any of them, request is rejected.
+* If any deny netmasks are defined and the IP matches any of them, request is rejected.
+* If the IP is found in the whitelist and has not expired, request is approved.
+* If the visitor's key doesn't match any of the keys provided in `.env` or via headers, request is rejected.
+* The IP is added to the whitelist with an expiration timestamp, request is approved.
