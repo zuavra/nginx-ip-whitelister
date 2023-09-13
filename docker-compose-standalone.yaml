@@ -1,0 +1,15 @@
+version: '3.5'
+services:
+  nginx-iw:
+    image: zuavra/nginx-ip-whitelister:latest
+    container_name: nginx-iw
+    user: 1000:1000
+    environment:
+      - PORT=3000
+      - HOST=0.0.0.0
+      - VALIDITY_MS=10800000
+      - KEY=CHANGE-ME
+      - DEBUG=yes
+    ports:
+        - "3000:3000/tcp"
+    restart: 'always'

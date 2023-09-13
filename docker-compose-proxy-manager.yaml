@@ -1,0 +1,45 @@
+version: '3.8'
+services:
+  nginx-pm:
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: nginx-pm
+    hostname: nginx-pm
+    ports:
+      - '81:81' # Admin Web Port
+      - '80:80' # Public HTTP Port
+      - '443:443' # Public HTTPS Port
+      # Add any other Stream port you want to expose
+      # - '21:21' # FTP
+    environment:
+      UID: "1000"
+      GID: "1000"
+    volumes:
+      - ./data:/data
+      - ./letsencrypt:/etc/letsencrypt
+    networks:
+      - nginx-network
+    restart: always
+
+  nging-iw:
+    image: zuavra/nginx-ip-whitelister:latest
+    container_name: nginx-iw
+    depends_on:
+      - nginx-pm
+    hostname: nginx-iw
+    user: 1000:1000
+    environment:
+      - PORT=3000
+      - HOST=0.0.0.0
+      - VALIDITY_MS=10800000
+      - KEY=CHANGE-ME
+      - DEBUG=yes
+    ports:
+        - "3000:3000/tcp"
+    networks:
+      - nginx-network
+    restart: 'always'
+
+networks:
+  nginx-network:
+    external:
+      name: nginx-network

@@ -91,25 +91,7 @@ You may want to use a tool that will restart the app if it fails, but really you
 
 ### 6.1. Build a Docker image
 
-Use this `Dockerfile`:
-```
-# syntax=docker/dockerfile:1
-
-FROM alpine
-ENV NODE_ENV=production
-
-WORKDIR /opt/nginx-iw
-
-COPY ["package.json", "index.js", "./"]
-
-RUN apk add --update nodejs npm
-RUN npm install --omit=dev
-
-CMD ["node", "index.js"]
-```
-
-Then build the image and publish it to your machine's local image repository, where it's now ready for being used by Docker containers:
-
+You can use the `Dockerfile` and `.dockerignore` included in the package and run the following command from the project root:
 
 ```
 $ docker build --tag zuavra/nginx-ip-whitelister .
@@ -117,120 +99,47 @@ $ docker build --tag zuavra/nginx-ip-whitelister .
 
 Yes, there's a dot at the end of the command.
 
+This will build the image and publish it to your machine's local image repository, where it's now ready for being used by Docker containers:
 
 ### 6.2. Run a standalone Docker container
 
 You can run a Docker container that listens on the host's network interface. Use this if your Nginx or Nginx Proxy Manager are able to communicate directly with the host network.
 
-Example `docker-compose.yaml`:
-
-```
-version: '3.8'
-services:
-  nginx-iw:
-    image: zuavra/nginx-ip-whitelister:latest
-    container_name: nginx-iw
-    user: 1000:1000
-    environment:
-      - PORT=3000
-      - HOST=0.0.0.0
-      - VALIDITY_MS=10800000
-      - KEY=CHANGE-ME
-      - DEBUG=yes
-    ports:
-        - "3000:3000/tcp"
-    restart: 'always'
-```
+See the `docker-compose-standalone.yaml` file for an example.
 
 You can of course also rely on `.env` if you place this in the same dir, omit the `environment:` section, and define the port as `- "${PORT}:${PORT}/tcp"`.
 
 ### 6.3. Run as a companion container to Nginx Proxy Manager
 
-If you're already running Nginx Proxy Manager as a Docker container you will first need to define a network common to both containers:
+If you intend to run both Nginx Proxy Manager and **_nginx-ip-whitelister_** as Docker containers you need to define a Docker network between them so the proxy will be able to reach the validator.
 
-```
-# docker network create nginx-network
-```
+* Create the Docker network:
+  ```
+  # docker network create nginx-network
+  ```
+* Tell each container to use the network by adding it to their `docker-compose.yaml` service definition:
+  ```
+  networks:
+    - nginx-network
+  ```
+* Give the validator its own hostname, so it's easier to refer to it from the proxy config:
+  ```
+  hostname: nginx-iw
+  ```
+* Add the network definition *outside* the service definition:
+  ```
+  networks:
+    nginx-network:
+      external:
+        name: nginx-network
+  ```
+* It's also a very good idea to make the __*nginx-ip-whitelister*__ container depend on the Nginx / Nginx Proxy Manager container:
+  ```
+  depends_on:
+    - name-of-nginx-container
+  ```
 
-Then you need to tell each container to use the network by adding this to each of their `docker-compose.yaml`:
-
-```
-    networks:
-      - nginx-network
-```
-
-And the network definition at the end:
-
-```
-networks:
-  nginx-network:
-    external:
-      name: nginx-network
-```
-
-It also helps if you name the __*nginx-ip-whitelister*__ hostname, so its can be easily referenced in the Nginx configuration.
-
-```
-    hostname: nginx-iw
-```
-It's a very good idea to make the __*nginx-ip-whitelister*__ container depend on the Nginx / Nginx Proxy Manager container:
-
-```
-    depends_on:
-      - name-of-nginx-container
-```
-
-You can define each `docker-container.yaml` separately, or you can add the definition for __*nginx-ip-whitelister*__ to the one for Nginx Proxy Manager (or Nginx).
-
-Here's an example that combines the two in a single file. This will still create two distinct containers but it will run them together, and you only have to define the network once.
-
-```
-version: '3.8'
-services:
-  nginx-pm:
-    image: 'jc21/nginx-proxy-manager:latest'
-    container_name: nginx-pm
-    hostname: nginx-pm
-    ports:
-      - '81:81' # Admin Web Port
-      - '80:80' # Public HTTP Port
-      - '443:443' # Public HTTPS Port
-      # Add any other Stream port you want to expose
-      # - '21:21' # FTP
-    environment:
-      UID: "1000"
-      GID: "1000"
-    volumes:
-      - ./data:/data
-      - ./letsencrypt:/etc/letsencrypt
-    networks:
-      - nginx-network
-    restart: always
-
-  nging-iw:
-    image: zuavra/nginx-ip-whitelister:latest
-    container_name: nginx-iw
-    depends_on:
-      - nginx-pm
-    hostname: nginx-iw
-    user: 1000:1000
-    environment:
-      - PORT=3000
-      - HOST=0.0.0.0
-      - VALIDITY_MS=10800000
-      - KEY=CHANGE-ME
-      - DEBUG=yes
-    ports:
-        - "3000:3000/tcp"
-    networks:
-      - nginx-network
-    restart: 'always'
-
-networks:
-  nginx-network:
-    external:
-      name: nginx-network
-```
+See the `docker-compose-proxy-manager.yaml` file for an example that combines both service definitions into a single file.
 
 ## 7. How to integrate with Nginx
 
