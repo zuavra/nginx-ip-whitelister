@@ -7,6 +7,7 @@ const M_validate_whitelist = require('./middleware/validate_whitelist');
 const M_validate_keys = require('./middleware/validate_keys');
 const M_validate_netmasks = require('./middleware/validate_netmasks');
 const M_accept_ip = require('./middleware/accept_ip');
+const M_validate_geoip = require('./middleware/validate_geoip');
 
 const app = framework();
 const globalStore = new Map();
@@ -34,6 +35,7 @@ app.use('/verify', (req, res, next) => {
 
 app.use('/verify', M_extract_headers);
 app.use('/verify', M_validate_netmasks);
+app.use('/verify', M_validate_geoip);
 app.use('/verify', M_validate_whitelist);
 app.use('/verify', M_validate_keys);
 app.use('/verify', M_accept_ip);

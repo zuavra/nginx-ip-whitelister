@@ -18,6 +18,7 @@
   "dependencies": {
     "connect": "=3.7.0",
     "dotenv": "=16.3.1",
+    "geoip-country": "=4.2.23",
     "netmask": "=2.0.2"
   }
 }

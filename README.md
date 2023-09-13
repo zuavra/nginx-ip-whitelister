@@ -271,6 +271,10 @@ The following headers can optionally be passed to the validator from Nginx. The 
 * `x-nipw-key`: Define additional authentication keys that will work alongside with the one defined in `.env`.
 * `x-nipw-netmask-allow`: Define one or more IP network masks to allow. An IP that doesn't match any of these masks will be rejected.
 * `x-nipw-netmask-deny`: Define one or more IP network masks to deny. An IP that matches any of these masks will be rejected. If any `-netmask-allow` header is defined all `-netmask-deny` headers will be ignored.
+* `x-nipw-geoip-allow`: Define one or more two-letter ISO-3166-1 country codes to allow. A non-private IP that doesn't match any of these countries will be rejected.
+* `x-nipw-geoip-deny`:  Define one or more two-letter ISO-3166-1 country codes to deny. A non-private IP that matches any of these countries will be rejected. If any `-geoip-allow` header is defined all `-geoip-deny` headers will be ignored.
+
+> Please understand that GeoIP matching is far from perfect. This project uses the [geoip-country](https://github.com/sapics/geoip-country) NPM module, which uses (outdated!) data from MaxMind. Please see the module's page to see how to update the geo data if you own a MaxMind license.
 
 ### 7.4. Validation logic
 
@@ -279,6 +283,8 @@ The logic works in the following order:
 * If the validation app cannot be reached by Nginx or returns any status code other than 2xx (including 500 if it malfunctions), request is rejected.
 * If any allow netmasks are defined and the IP doesn't match any of them, request is rejected.
 * If any deny netmasks are defined and the IP matches any of them, request is rejected.
+* If any GeoIP allow countries are defined and the IP is not private and doesn't match any of them, request is rejected.
+* If any GeoIP deny countries are defined and the IP is not private and matches any of them, request is rejected.
 * If the IP is found in the whitelist and has not expired, request is approved.
 * If the visitor's key doesn't match any of the keys provided in `.env` or via headers, request is rejected.
 * The IP is added to the whitelist with an expiration timestamp, request is approved.
