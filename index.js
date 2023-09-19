@@ -12,6 +12,7 @@ import M_validate_whitelist from './middleware/validate_whitelist.js';
 import M_extract_proxy_values from './middleware/extract_proxy_values.js';
 import M_validate_keys from './middleware/validate_keys.js';
 import M_accept_ip from './middleware/accept_ip.js';
+import M_validate_totp from './middleware/validate_totp.js';
 
 const app = framework();
 const globalStore = new Map();
@@ -42,6 +43,7 @@ app.use('/verify', M_validate_netmasks);
 app.use('/verify', M_validate_geoip);
 app.use('/verify', M_validate_whitelist);
 app.use('/verify', M_validate_keys);
+app.use('/verify', M_validate_totp);
 app.use('/verify', M_accept_ip);
 
 http.createServer(app).listen(process.env.PORT, process.env.HOST);
