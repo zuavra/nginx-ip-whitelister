@@ -1,13 +1,17 @@
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+
 require('dotenv').config();
 const framework = require('connect');
 const http = require('http');
-const Logger = require('./lib/logger');
-const M_extract_headers = require('./middleware/extract_headers');
-const M_validate_whitelist = require('./middleware/validate_whitelist');
-const M_validate_keys = require('./middleware/validate_keys');
-const M_validate_netmasks = require('./middleware/validate_netmasks');
-const M_accept_ip = require('./middleware/accept_ip');
-const M_validate_geoip = require('./middleware/validate_geoip');
+import Logger from './lib/logger.js';
+
+const M_validate_netmasks = require('./middleware/validate_netmasks.cjs');
+const M_validate_geoip = require('./middleware/validate_geoip.cjs');
+import M_validate_whitelist from './middleware/validate_whitelist.js';
+import M_extract_proxy_values from './middleware/extract_proxy_values.js';
+import M_validate_keys from './middleware/validate_keys.js';
+import M_accept_ip from './middleware/accept_ip.js';
 
 const app = framework();
 const globalStore = new Map();
@@ -33,7 +37,7 @@ app.use('/verify', (req, res, next) => {
     next();
 });
 
-app.use('/verify', M_extract_headers);
+app.use('/verify', M_extract_proxy_values);
 app.use('/verify', M_validate_netmasks);
 app.use('/verify', M_validate_geoip);
 app.use('/verify', M_validate_whitelist);

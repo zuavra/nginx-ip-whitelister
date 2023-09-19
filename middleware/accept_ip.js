@@ -1,4 +1,4 @@
-module.exports = (req, res) => {
+export default (req, res) => {
     // all relevant checks passed, add IP to whitelist
     const now = new Date().getTime();
     const exp = new Date(now + parseInt(process.env.VALIDITY_MS)).getTime();

@@ -3,6 +3,12 @@
   "version": "1.0.0",
   "description": "Authentication backend that works with the Nginx ngx_http_auth_request_module and whitelists remote IP address if a key is provided.",
   "main": "index.js",
+  "type": "module",
+  "exports": {
+    "node": {
+      "import": "./index.js"
+    }
+  },
   "scripts": {},
   "keywords": [
     "nginx",

@@ -1,16 +1,13 @@
-const URL = require('node:url');
-
-module.exports = (req, res, next) => {
+export default (req, res, next) => {
     // test for key match
-    const VISITOR_KEY = URL.parse(res.local.ORIGINAL_URI).query;
     let matched = false;
-    if (VISITOR_KEY) {
-        const locatedKey = res.local.PROXY_KEYS.indexOf(VISITOR_KEY);
+    if (res.local.VISITOR_KEY) {
+        const locatedKey = res.local.PROXY_KEYS.indexOf(res.local.VISITOR_KEY);
         if (locatedKey !== -1) {
             matched = true;
             res.local.logger.hold(`Key matched proxy key #${locatedKey}.`);
         }
-        else if (VISITOR_KEY === process.env.KEY) {
+        else if (res.local.VISITOR_KEY === process.env.KEY) {
             matched = true;
             res.local.logger.hold('Key matched server key.');
         }

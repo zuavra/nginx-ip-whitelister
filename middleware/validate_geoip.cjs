@@ -1,5 +1,5 @@
 const geoip = require('geoip-country');
-const isPrivateIP = require('../lib/private_ip');
+const isPrivateIP = require('../lib/private_ip.cjs');
 
 module.exports = (req, res, next) => {
     const allow = res.local.arrayHeaders(req.headers['x-nipw-geoip-allow']);

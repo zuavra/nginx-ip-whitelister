@@ -1,4 +1,4 @@
-module.exports = (req, res, next) => {
+export default (req, res, next) => {
     // test for IP presence in store
     if (res.local.store.has(res.local.REMOTE_IP)) {
         const entry = res.local.store.get(res.local.REMOTE_IP);
