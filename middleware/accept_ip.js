@@ -8,7 +8,7 @@ export default (_, res) => {
     res.local.store.set(res.local.REMOTE_IP, {
         expirationTimestamp: exp,
     });
-    res.status(200);
+    res.statusCode = 200;
     res.local.logger.log('IP added. Allowed.');
 
     // my heart will go on

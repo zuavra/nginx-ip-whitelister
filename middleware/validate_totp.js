@@ -10,7 +10,7 @@ export default (_, res, next) => {
                 return next();
             }
         }
-        res.status(403);
+        res.statusCode = 403;
         res.local.logger.log('TOTP did not match any secrets. Rejected.');
         return res.end();
     }

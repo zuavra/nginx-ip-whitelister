@@ -13,7 +13,7 @@ export default (req, res, next) => {
         }
     }
     if (!matched) {
-        res.status(403);
+        res.statusCode = 403;
         res.local.logger.log('No keys matched. Rejected.');
         return res.end();
     }
