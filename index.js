@@ -46,5 +46,8 @@ app.use('/verify', M_validate_keys);
 app.use('/verify', M_validate_totp);
 app.use('/verify', M_accept_ip);
 
-http.createServer(app).listen(process.env.PORT, process.env.HOST);
-globalLogger.log(`Listening on ${process.env.HOST}:${process.env.PORT}.`);
+
+const PORT = parseInt(process.env.PORT) || 3000;
+const HOST = process.env.HOST || '0.0.0.0';
+http.createServer(app).listen(PORT, HOST);
+globalLogger.log(`Listening on ${HOST}:${PORT}.`);
