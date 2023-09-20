@@ -39,51 +39,23 @@ app.use('/reject', (_, res) => {
     res.end('REJECTED');
 });
 
-app.use('/verify',
-    // order of middlewares is crucial
-    M_setup_local(
-        globalStore,
-        new Logger(process.env.DEBUG),
-    ),
-);
-app.use('/verify',
-    M_extract_proxy_values,
-);
-app.use('/verify',
-    M_setup_logger,
-);
-app.use('/verify',
-  M_validate_netmasks,
-);
-app.use('/verify',
-  M_validate_geoip,
-);
-app.use('/verify',
-  M_validate_whitelist,
-);
-app.use('/verify',
-  M_validate_keys,
-);
-app.use('/verify',
-  M_validate_totp,
-);
-app.use('/verify',
-  M_accept_ip,
-);
+  // order of middlewares is crucial
+app.use('/verify', M_setup_local(globalStore));
+app.use('/verify', M_extract_proxy_values);
+app.use('/verify', M_setup_logger);
+app.use('/verify', M_validate_netmasks);
+app.use('/verify', M_validate_geoip);
+app.use('/verify', M_validate_whitelist);
+app.use('/verify', M_validate_keys);
+app.use('/verify', M_validate_totp);
+app.use('/verify', M_accept_ip);
 app.use('/verify', (_, res) => res.end());
-    
-    // catch-all
-    // (_, res) => res.end(),
-app.use('/verify',
-    (error, req, res, next) => {
-      res.local.logger.log('Server error:');
-      console.log(error);
-      res.statusCode = 500;
-      res.end('ERROR LOGGED');
-    },
-);
-
-
+app.use('/verify', (error, req, res, next) => {
+  res.local.logger.log('Server error:');
+  console.log(error);
+  res.statusCode = 500;
+  res.end('ERROR LOGGED');
+});
 globalLogger.log('Loaded application.');
 
 const PORT = parseInt(process.env.PORT) || 3000;

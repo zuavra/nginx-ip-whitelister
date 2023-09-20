@@ -1,7 +1,9 @@
-export default (store, logger) => (req, res, next) => {
+import Logger from '../lib/logger.js';
+
+export default store => (req, res, next) => {
     if (!res.local) res.local = {};
     res.local.store = store;
-    res.local.logger = logger;
+    res.local.logger = new Logger(process.env.DEBUG);
 
     const allHeaders = req.headersDistinct || {};
     res.local.getHeaders = headerName => {
