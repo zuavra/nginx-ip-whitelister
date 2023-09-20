@@ -7,7 +7,7 @@ services:
     environment:
       - PORT=3000
       - HOST=0.0.0.0
-      - VALIDITY_MS=10800000
+      - FIXED_TIMEOUT=10800000
       - KEY=CHANGE-ME
       - DEBUG=yes
     ports:

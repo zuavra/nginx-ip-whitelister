@@ -1,7 +1,10 @@
+import timeout_converter from "../lib/timeout_converter";
+
 export default (req, res) => {
     // all relevant checks passed, add IP to whitelist
     const now = new Date().getTime();
-    const exp = new Date(now + parseInt(process.env.VALIDITY_MS)).getTime();
+    const FIXED_TIMEOUT = timeout_converter(process.env.FIXED_TIMEOUT);
+    const exp = new Date(now + FIXED_TIMEOUT).getTime();
     res.local.store.set(res.local.REMOTE_IP, {
         expirationTimestamp: exp,
     });
