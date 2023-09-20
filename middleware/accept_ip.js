@@ -1,4 +1,4 @@
-import timeout_converter from "../lib/timeout_converter";
+import timeout_converter from "../lib/timeout_converter.js";
 
 export default (req, res) => {
     // all relevant checks passed, add IP to whitelist

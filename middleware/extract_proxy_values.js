@@ -1,4 +1,4 @@
-import URL from 'node:url';
+import { URL } from 'node:url';
 
 export default (req, res, next) => {
     // extract information sent by the proxy inside headers
