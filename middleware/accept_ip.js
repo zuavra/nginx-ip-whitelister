@@ -1,6 +1,6 @@
 import timeoutConverter from "../lib/timeout_converter.js";
 
-export default (_, res) => {
+export default (_, res, next) => {
     // all relevant checks passed, add IP to whitelist
     const now = new Date().getTime();
     const FIXED_TIMEOUT = timeoutConverter(process.env.FIXED_TIMEOUT);
