@@ -1,5 +1,10 @@
+.dockerignore
 node_modules
-compose.yaml
+*.yaml
+*~
+.env.example
+.git
+.gitignore
 Dockerfile
 LICENSE
 README.md
