@@ -23,7 +23,8 @@ This app was designed to be particularly easy to integrate with [Nginx Proxy Man
   - [6.1. Nginx proxy host configuration](#61-nginx-proxy-host-configuration)
   - [6.2. Validation URLs](#62-validation-urls)
   - [6.3. Condition headers](#63-condition-headers)
-  - [6.4. Validation logic](#64-validation-logic)
+- [7. Validation logic](#7-validation-logic)
+- [8. Credits](#8-credits)
 <!-- /TOC -->
 
 ## 1. Obligatory security warning
@@ -209,7 +210,7 @@ The following headers can optionally be passed to the validator from Nginx. The 
 
 > Please understand that GeoIP matching is far from perfect. This project uses the [geoip-country](https://github.com/sapics/geoip-country) NPM module, which uses (outdated!) data from MaxMind. Please read that module's page to see how you can update the geo data if you own a MaxMind license.
 
-### 6.4. Validation logic
+## 7. Validation logic
 
 The logic works in the following order:
 
@@ -224,3 +225,7 @@ The logic works in the following order:
 * The IP is added to the whitelist with an expiration timestamp, request is approved.
 
 > **Remember** that the whitelist is stored in RAM and will be lost every time you stop or restart the app (or its container).
+
+## 8. Credits
+
+This project uses [IP Geolocation by DB-IP](https://db-ip.com).

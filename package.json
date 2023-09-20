@@ -23,7 +23,7 @@
   "license": "MIT",
   "dependencies": {
     "dotenv": "=16.3.1",
-    "geoip-country": "=4.2.23",
+    "maxmind": "=4.3.11",
     "netmask": "=2.0.2",
     "pure-http": "=3.3.3",
     "totp-auth": "=1.0.11"

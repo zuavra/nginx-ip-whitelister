@@ -1,12 +1,14 @@
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
-
-// TODO: ejs module
-const M_validate_geoip = require('./middleware/validate_geoip.cjs');
-
 import pureHttp from 'pure-http';
 import dotenv from 'dotenv';
 import Logger from './lib/logger.js';
+
+dotenv.config();
+const app = pureHttp();
+const globalStore = new Map();
+const globalLogger = new Logger('yes');
+
+import M_validate_geoip from './middleware/validate_geoip.js';
+globalLogger.log('Imported GeoIP database.');
 
 import M_setup_local from './middleware/setup_local.js';
 import M_setup_logger from './middleware/setup_logger.js';
@@ -16,11 +18,7 @@ import M_extract_proxy_values from './middleware/extract_proxy_values.js';
 import M_validate_keys from './middleware/validate_keys.js';
 import M_accept_ip from './middleware/accept_ip.js';
 import M_validate_totp from './middleware/validate_totp.js';
-
-dotenv.config();
-const app = pureHttp();
-const globalStore = new Map();
-const globalLogger = new Logger('yes');
+globalLogger.log('Loaded all middleware.');
 
 app.get('/approve', (_, res) => {
     res.status(200);
@@ -50,6 +48,7 @@ app.get('/verify',
     // catch-all
     (_, res) => res.end(),
 );
+globalLogger.log('Loaded application.');
 
 const PORT = parseInt(process.env.PORT) || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
