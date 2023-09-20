@@ -7,7 +7,7 @@ export default (req, res, next) => {
             matched = true;
             res.local.logger.hold(`Key matched proxy key #${locatedKey}.`);
         }
-        else if (res.local.VISITOR_KEY === process.env.KEY) {
+        else if (process.env.KEY && res.local.VISITOR_KEY === process.env.KEY) {
             matched = true;
             res.local.logger.hold('Key matched server key.');
         }
