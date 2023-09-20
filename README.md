@@ -204,7 +204,8 @@ The following headers can optionally be passed to the validator from Nginx. The 
 * `x-nipw-netmask-allow`: Define one or more IP network masks to allow. An IP that doesn't match any of these masks will be rejected.
 * `x-nipw-netmask-deny`: Define one or more IP network masks to deny. An IP that matches any of these masks will be rejected. These headers will be ignored if any `-netmask-allow` headers are defined.
 * `x-nipw-geoip-allow`: Define one or more two-letter ISO-3166-1 country codes to allow. An IP that doesn't match any of these countries will be rejected. Private IPs always pass this check.
-* `x-nipw-geoip-deny`:  Define one or more two-letter ISO-3166-1 country codes to deny. An IP that matches any of these countries will be rejected. Private IPs always pass this check. These headers will be ignored if any `-geoip-allow` header is defined.
+* `x-nipw-geoip-deny`: Define one or more two-letter ISO-3166-1 country codes to deny. An IP that matches any of these countries will be rejected. Private IPs always pass this check. These headers will be ignored if any `-geoip-allow` header is defined.
+* `x-nipw-totp`: Define one or more TOTP secrets. If any `-totp` header is defined, the visitor will have to append a valid TOTP code matching one of the secrets to the URL key, separated by a colon: `/?ACCESS-KEY:TOTP-CODE`. If none of the secrets have been matched the request will be rejected.
 
 > Please understand that GeoIP matching is far from perfect. This project uses the [geoip-country](https://github.com/sapics/geoip-country) NPM module, which uses (outdated!) data from MaxMind. Please read that module's page to see how you can update the geo data if you own a MaxMind license.
 
@@ -218,7 +219,8 @@ The logic works in the following order:
 * If any GeoIP allow countries are defined and the IP is not private and doesn't match any of them, request is rejected.
 * If any GeoIP deny countries are defined and the IP is not private and matches any of them, request is rejected.
 * If the IP is found in the whitelist and has not expired, request is approved.
-* If the visitor's key doesn't match any of the keys provided in `.env` or via headers, request is rejected.
+* If the visitor's URL key doesn't match any of the keys provided in `.env` or via headers, request is rejected.
+* If any TOTP secrets are defined and the visitor's URL TOTP code doesn't match any of them, request is rejected.
 * The IP is added to the whitelist with an expiration timestamp, request is approved.
 
 > **Remember** that the whitelist is stored in RAM and will be lost every time you stop or restart the app (or its container).
