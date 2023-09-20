@@ -2,12 +2,8 @@
 
 FROM alpine
 ENV NODE_ENV=production
-
-WORKDIR /opt/nginx-iw
-
-COPY . .
-
 RUN apk add --update nodejs npm
+WORKDIR /opt/nginx-iw
+COPY . .
 RUN npm install --omit=dev
-
 CMD ["node", "index.js"]
