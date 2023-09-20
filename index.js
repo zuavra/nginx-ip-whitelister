@@ -76,6 +76,7 @@ app.use('/verify', (_, res) => res.end());
     // (_, res) => res.end(),
 app.use('/verify',
     (error, req, res, next) => {
+      res.local.logger.log('Server error:');
       console.log(error);
       res.statusCode = 500;
       res.end('ERROR LOGGED');
