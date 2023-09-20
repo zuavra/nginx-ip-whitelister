@@ -16,7 +16,7 @@ import M_validate_totp from './middleware/validate_totp.js';
 
 const app = framework();
 const globalStore = new Map();
-const globalLogger = new Logger();
+const globalLogger = new Logger('yes');
 
 app.use('/allow', (req ,res) => {
     res.statusCode = 200;
@@ -32,7 +32,7 @@ app.use('/verify', (req, res, next) => {
     // initialize res.local with session-wide objects
     if (!res.local) res.local = {};
     res.local.store = globalStore;
-    res.local.logger = new Logger();
+    res.local.logger = new Logger(process.env.DEBUG);
     res.local.arrayHeaders = H => (H || '').split(/ *, */).filter(x => !!x);
 
     next();
