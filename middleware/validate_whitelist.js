@@ -4,7 +4,7 @@ export default (req, res, next) => {
         const entry = res.local.store.get(res.local.REMOTE_IP);
         const now = new Date().getTime();
         if (now < parseInt(entry?.expirationTimestamp)) {
-            res.statusCode = 200;
+            res.status(200);
             res.local.logger.log('IP found. Allowed.');
             return res.end();
         }

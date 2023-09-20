@@ -1,7 +1,7 @@
-const Netmask = require('netmask').Netmask;
+import { Netmask } from 'netmask';
 
-module.exports = (req, res, next) => {
-    const allow = res.local.arrayHeaders(req.headers['x-nipw-netmask-allow']);
+export default (_, res, next) => {
+    const allow = res.local.getHeaders('x-nipw-netmask-allow');
     if (allow.length) {
         for (let i = 0; i < allow.length; i++) {
             const netmask = allow[i];
@@ -11,18 +11,18 @@ module.exports = (req, res, next) => {
                 return next();
             }
         }
-        res.statusCode = 403;
+        res.status(403);
         res.local.logger.log('No allowed netmask matched. Rejected.');
         return res.end();
     }
 
-    const deny = res.local.arrayHeaders(req.headers['x-nipw-netmask-deny']);
+    const deny = res.local.getHeaders('x-nipw-netmask-deny');
     if (deny.length) {
         for (let i = 0; i < deny.length; i++) {
             const netmask = deny[i];
             const block = new Netmask(netmask);
             if (block.contains(res.local.REMOTE_IP)) {
-                res.statusCode = 403;
+                res.status(403);
                 res.local.logger.log(`IP matched denied mask ${netmask}. Rejected.`);
                 return res.end();
             }

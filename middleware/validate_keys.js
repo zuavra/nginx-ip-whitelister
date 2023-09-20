@@ -2,7 +2,7 @@ export default (req, res, next) => {
     // test for key match
     let matched = false;
     if (res.local.VISITOR_KEY) {
-        const locatedKey = res.local.PROXY_KEYS.indexOf(res.local.VISITOR_KEY);
+        const locatedKey = res.local.getHeaders('x-nipw-key').indexOf(res.local.VISITOR_KEY);
         if (locatedKey !== -1) {
             matched = true;
             res.local.logger.hold(`Key matched proxy key #${locatedKey}.`);
@@ -13,7 +13,7 @@ export default (req, res, next) => {
         }
     }
     if (!matched) {
-        res.statusCode = 403;
+        res.status(403);
         res.local.logger.log('No keys matched. Rejected.');
         return res.end();
     }

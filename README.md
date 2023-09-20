@@ -192,7 +192,7 @@ If you're running the app standalone or in a non-networked container please repl
 
 Use `/verify` to call the conditional validator.
 
-You can also use `/allow` to always pass the check, and `/reject` to always fail the check.
+You can also use `/approve` to always pass the check, and `/reject` to always fail the check.
 
 ### 6.3. Condition headers
 

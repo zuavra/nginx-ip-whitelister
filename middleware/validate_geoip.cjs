@@ -1,9 +1,9 @@
 const geoip = require('geoip-country');
 const isPrivateIP = require('../lib/private_ip.cjs');
 
-module.exports = (req, res, next) => {
-    const allow = res.local.arrayHeaders(req.headers['x-nipw-geoip-allow']);
-    const deny = res.local.arrayHeaders(req.headers['x-nipw-geoip-deny']);
+module.exports = (_, res, next) => {
+    const allow = res.local.getHeaders('x-nipw-geoip-allow');
+    const deny = res.local.getHeaders('x-nipw-geoip-deny');
 
     if ((allow.length || deny.length)) {
         if (isPrivateIP(res.local.REMOTE_IP)) {
@@ -22,14 +22,14 @@ module.exports = (req, res, next) => {
                     res.local.logger.hold(`IP matched allowed country ${country}.`);
                     return next();
                 }
-                res.statusCode = 403;
+                res.status(403);
                 res.local.logger.log('No allowed country matched. Rejected.');
                 return res.end();
             }
 
             if (deny.length) {
                 if (deny.indexOf(country) != -1) {
-                    res.statusCode = 403;
+                    res.status(403);
                     res.local.logger.log(`IP matched denied country ${country}. Rejected.`);
                     return res.end();
                 }
