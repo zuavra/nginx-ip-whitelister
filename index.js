@@ -1,18 +1,17 @@
-process
-  .on('unhandledRejection', (reason, p) => {
-    console.error(reason, 'Unhandled Rejection at Promise', p);
-  })
-  .on('uncaughtException', err => {
-    console.error(err, 'Uncaught Exception thrown');
+process.on('unhandledRejection', (reason, P) => {
+    console.error(reason, 'Unhandled promise:', P);
+});
+process.on('uncaughtException', e => {
+    console.error('Uncaught exception:', e);
     process.exit(1);
-  });
+});
 
-import connect from 'connect';
+import StupidHttp from './lib/stupid_http.js';
 import dotenv from 'dotenv';
 import Logger from './lib/logger.js';
 
 dotenv.config();
-const app = connect();
+const app = new StupidHttp();
 const globalStore = new Map();
 const globalLogger = new Logger('yes');
 
@@ -29,36 +28,36 @@ import M_accept_ip from './middleware/accept_ip.js';
 import M_validate_totp from './middleware/validate_totp.js';
 globalLogger.log('Loaded all middleware.');
 
-app.use('/approve', (_, res) => {
+app.use(M_setup_local(globalStore));
+app.get('/approve', (_, res) => {
     res.statusCode = 200;
     res.end('APPROVED');
 });
-
-app.use('/reject', (_, res) => {
+app.get('/reject', (_, res) => {
     res.statusCode = 403;
     res.end('REJECTED');
 });
-
-  // order of middlewares is crucial
-app.use('/verify', M_setup_local(globalStore));
-app.use('/verify', M_extract_proxy_values);
-app.use('/verify', M_setup_logger);
-app.use('/verify', M_validate_netmasks);
-app.use('/verify', M_validate_geoip);
-app.use('/verify', M_validate_whitelist);
-app.use('/verify', M_validate_keys);
-app.use('/verify', M_validate_totp);
-app.use('/verify', M_accept_ip);
-app.use('/verify', (_, res) => res.end());
-app.use('/verify', (error, req, res, next) => {
-  res.local.logger.log('Server error:');
-  console.log(error);
-  res.statusCode = 500;
-  res.end('ERROR LOGGED');
+app.get('/verify',
+    // order of middlewares is crucial
+    M_extract_proxy_values,
+    M_setup_logger,
+    M_validate_netmasks,
+    M_validate_geoip,
+    M_validate_whitelist,
+    M_validate_keys,
+    M_validate_totp,
+    M_accept_ip,
+    (_, res) => res.end(),
+);
+app.use((error, _, res) => {
+    res.local.logger.log('Server error:');
+    console.error(error);
+    res.statusCode = 500;
+    res.end('ERROR LOGGED');
 });
 globalLogger.log('Loaded application.');
 
 const PORT = parseInt(process.env.PORT) || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
-app.listen(PORT, HOST);
 globalLogger.log(`Listening on ${HOST}:${PORT}.`);
+app.listen(PORT, HOST);

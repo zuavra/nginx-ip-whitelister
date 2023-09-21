@@ -1,6 +1,6 @@
 import { URL } from 'node:url';
 
-export default (_, res, next) => {
+export default (_, res) => {
     // extract and preserve essential proxy parameters
     res.local.ORIGINAL_URI = res.local.getHeaders('x-original-uri')[0] || '';
     res.local.REMOTE_IP = res.local.getHeaders('x-forwarded-for')[0] || '';
@@ -9,7 +9,4 @@ export default (_, res, next) => {
     const params = (url.search || '').match(/^\?([^:]+)(?::([^:]+))?/) || [];
     res.local.VISITOR_KEY = params[1] || '';
     res.local.VISITOR_TOTP = params[2] || '';
-
-    // my heart will go on
-    next();
 }

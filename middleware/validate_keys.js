@@ -1,4 +1,4 @@
-export default (req, res, next) => {
+export default (_, res) => {
     // test for key match
     let matched = false;
     if (res.local.VISITOR_KEY) {
@@ -17,7 +17,4 @@ export default (req, res, next) => {
         res.local.logger.log('No keys matched. Rejected.');
         return res.end();
     }
-
-    // my heart will go on
-    next();
 }

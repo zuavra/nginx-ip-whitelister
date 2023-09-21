@@ -1,6 +1,6 @@
 import { Netmask } from 'netmask';
 
-export default (_, res, next) => {
+export default (_, res) => {
     const allow = res.local.getHeaders('x-nipw-netmask-allow');
     if (allow.length) {
         for (let i = 0; i < allow.length; i++) {
@@ -8,7 +8,7 @@ export default (_, res, next) => {
             const block = new Netmask(netmask);
             if (block.contains(res.local.REMOTE_IP)) {
                 res.local.logger.hold(`IP matched allowed mask ${netmask}.`);
-                return next();
+                return;
             }
         }
         res.statusCode = 403;
@@ -28,7 +28,4 @@ export default (_, res, next) => {
             }
         };
     }
-
-    // my heart will go on
-    next();
 }

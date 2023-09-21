@@ -1,6 +1,6 @@
 import Logger from '../lib/logger.js';
 
-export default store => (req, res, next) => {
+export default store => (req, res) => {
     if (!res.local) res.local = {};
     res.local.store = store;
     res.local.logger = new Logger(process.env.DEBUG);
@@ -9,6 +9,4 @@ export default store => (req, res, next) => {
     res.local.getHeaders = headerName => {
         return Array.isArray(allHeaders[headerName]) ? allHeaders[headerName] : [];
     };
-
-    next();
 };
