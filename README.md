@@ -208,7 +208,7 @@ The following headers can optionally be passed to the validator from Nginx. The 
 * `x-nipw-geoip-deny`: Define one or more two-letter ISO-3166-1 country codes to deny. An IP that matches any of these countries will be rejected. Private IPs always pass this check. These headers will be ignored if any `-geoip-allow` header is defined.
 * `x-nipw-totp`: Define one or more TOTP secrets. If any `-totp` header is defined, the visitor will have to append a valid TOTP code matching one of the secrets to the URL key, separated by a colon: `/?ACCESS-KEY:TOTP-CODE`. If none of the secrets have been matched the request will be rejected.
 
-> Please understand that GeoIP matching is far from perfect. This project uses the [geoip-country](https://github.com/sapics/geoip-country) NPM module, which uses (outdated!) data from MaxMind. Please read that module's page to see how you can update the geo data if you own a MaxMind license.
+> Please understand that GeoIP matching is far from perfect. This project uses a "lite" GeoIP database which is not super-accurate, but even exhaustive databases can make mistakes. Accept the fact that occasionally you will end up blocking (or allowing) an IP that shouldn't be.
 
 ## 7. Validation logic
 
