@@ -16,7 +16,7 @@ const globalStore = new Map();
 const globalLogger = new Logger('yes');
 
 import M_validate_geoip from './middleware/validate_geoip.js';
-globalLogger.log('Imported GeoIP database.');
+globalLogger.flush('Imported GeoIP database.');
 
 import M_setup_local from './middleware/setup_local.js';
 import M_setup_logger from './middleware/setup_logger.js';
@@ -26,7 +26,7 @@ import M_extract_proxy_values from './middleware/extract_proxy_values.js';
 import M_validate_keys from './middleware/validate_keys.js';
 import M_accept_ip from './middleware/accept_ip.js';
 import M_validate_totp from './middleware/validate_totp.js';
-globalLogger.log('Loaded all middleware.');
+globalLogger.flush('Loaded all middleware.');
 
 app.use(M_setup_local(globalStore));
 app.get('/approve', (_, res) => {
@@ -50,14 +50,14 @@ app.get('/verify',
     (_, res) => res.end(),
 );
 app.use((error, _, res) => {
-    res.local.logger.log('Server error:');
+    res.local.logger.flush('Server error:');
     console.error(error);
     res.statusCode = 500;
     res.end('ERROR LOGGED');
 });
-globalLogger.log('Loaded application.');
+globalLogger.flush('Loaded application.');
 
 const PORT = parseInt(process.env.PORT) || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
-globalLogger.log(`Listening on ${HOST}:${PORT}.`);
+globalLogger.flush(`Listening on ${HOST}:${PORT}.`);
 app.listen(PORT, HOST);

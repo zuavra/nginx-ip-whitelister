@@ -5,14 +5,14 @@ export default (_, res) => {
         const now = new Date().getTime();
         if (now < parseInt(entry?.expirationTimestamp)) {
             res.statusCode = 200;
-            res.local.logger.log('IP found. Allowed.');
+            res.local.logger.flush('IP found. Allowed.');
             return res.end();
         }
         // remove expired entries from store and resume normal checks
         res.local.store.delete(res.local.REMOTE_IP);
-        res.local.logger.hold('IP found but expired.');
+        res.local.logger.queue('IP found but expired.');
     }
     else {
-        res.local.logger.hold('IP not found.');
+        res.local.logger.queue('IP not found.');
     }
 }

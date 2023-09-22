@@ -9,5 +9,5 @@ export default (_, res) => {
         expirationTimestamp: exp,
     });
     res.statusCode = 200;
-    res.local.logger.log('IP added. Allowed.');
+    res.local.logger.flush('IP added. Allowed.');
 }

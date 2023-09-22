@@ -7,12 +7,12 @@ export default (_, res) => {
             const netmask = allow[i];
             const block = new Netmask(netmask);
             if (block.contains(res.local.REMOTE_IP)) {
-                res.local.logger.hold(`IP matched allowed mask ${netmask}.`);
+                res.local.logger.queue(`IP matched allowed mask ${netmask}.`);
                 return;
             }
         }
         res.statusCode = 403;
-        res.local.logger.log('No allowed netmask matched. Rejected.');
+        res.local.logger.flush('No allowed netmask matched. Rejected.');
         return res.end();
     }
 
@@ -23,7 +23,7 @@ export default (_, res) => {
             const block = new Netmask(netmask);
             if (block.contains(res.local.REMOTE_IP)) {
                 res.statusCode = 403;
-                res.local.logger.log(`IP matched denied mask ${netmask}. Rejected.`);
+                res.local.logger.flush(`IP matched denied mask ${netmask}. Rejected.`);
                 return res.end();
             }
         };
