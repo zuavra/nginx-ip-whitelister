@@ -15,4 +15,3 @@ export default (_, res) => {
         return res.end();
     }
 };
-

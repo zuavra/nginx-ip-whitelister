@@ -6,8 +6,8 @@ process.on('uncaughtException', e => {
     process.exit(1);
 });
 
-import StupidHttp from './lib/stupid_http.js';
 import dotenv from 'dotenv';
+import StupidHttp from './lib/stupid_http.js';
 import createLoggerFactory from './lib/logger.js';
 
 dotenv.config();
@@ -53,7 +53,7 @@ app.use((error, _, res) => {
     res.local.logger.flush('Server error:');
     console.error(error);
     res.statusCode = 500;
-    res.end('ERROR LOGGED');
+    res.end('FATAL ERROR');
 });
 globalLogger.flush('Loaded application.');
 
