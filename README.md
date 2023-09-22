@@ -22,7 +22,8 @@ This app was designed to be particularly easy to integrate with [Nginx Proxy Man
 - [6. How to integrate with Nginx](#6-how-to-integrate-with-nginx)
   - [6.1. Nginx proxy host configuration](#61-nginx-proxy-host-configuration)
   - [6.2. Validation URLs](#62-validation-urls)
-  - [6.3. Condition headers](#63-condition-headers)
+  - [6.3. Timeout headers](#63-timeout-headers)
+  - [6.4. Condition headers](#64-condition-headers)
 - [7. Validation logic](#7-validation-logic)
 - [8. Credits](#8-credits)
 <!-- /TOC -->
@@ -158,8 +159,6 @@ The following variables need to be available in the app environment to work. You
 
 * `PORT`: defines the port that the validator listens on. *Defaults to `3000`.*
 * `HOST`: defines the interface that the validator listens on. *Defaults to `0.0.0.0`.*
-* `FIXED_TIMEOUT`: a number followed by `d`, `h`, `m` or `s` to indicate
-an amount of days, hours, minutes or seconds, respectively, after which an IP is removed from the whitelist. *Defaults to 2 hours (`2h`).* This interval is calculated from the moment the IP was first added to the list. The interval does *not* extend if you use the key again – hence the "fixed" name.
 * `KEY`: you can specify an access key which will always be checked. Leave blank to disable this and to only check keys passed from Nginx configuration.
 * `DEBUG`: if set to `yes` it will log every request to the standard output. By default it will only log the initial "Listening..." message.
 
@@ -195,9 +194,22 @@ Use `/verify` to call the conditional validator.
 
 You can also use `/approve` to always pass the check, and `/reject` to always fail the check.
 
-### 6.3. Condition headers
+### 6.3. Timeout headers
 
-The following headers can optionally be passed to the validator from Nginx. The header names are case insensitive. Each header can be used multiple times.
+The following headers can optionally be passed to the validator from Nginx to adjust the timeout policy for the whitelist.
+
+The header names are case insensitive. You can only use these headers once each – additional uses will be ignored.
+
+* `x-nipw-fixed-timeout`: A strictly positive integer, followed by the suffix `d`, `h`, `m` or `s` to indicate an amount of days, hours, minutes or seconds, respectively. The fixed timeout is compared against the moment when an IP was first added to the whitelist and it does not change. In other words, if you set a fixed timeout of `6h`, the IP will be de-listed 6 hours later, period. If you don't provide this header, *the fixed timeout defaults to 2 hours*.
+* `x-nipw-sliding-timeout`: Same format as the fixed timeout. The sliding timeout is compared against the most recent access from that IP, and if successful the last access is reset to now. In other words, if you set a sliding timeout of '30m', the IP will not be de-listed unless there's no access for 30 straight minutes. If you don't provide this header, *the sliding timeout defaults to 5 minutes*.
+
+> Both timeout policies are enforced in parallel – each IP has a fixed time window from when it started, as well as a condition to not be inactive for too long.
+
+### 6.4. Condition headers
+
+The following headers can optionally be passed to the validator from Nginx to impose additional condition upon the requests.
+
+The header names are case insensitive. Each of these headers can be used multiple times.
 
 > Please don't use commas or semicolons inside header values, they sometimes cause header libraries to split the value into separate ones.
 
@@ -219,10 +231,10 @@ The logic works in the following order:
 * If any deny netmasks are defined and the IP matches any of them, request is rejected.
 * If any GeoIP allow countries are defined and the IP is not private and doesn't match any of them, request is rejected.
 * If any GeoIP deny countries are defined and the IP is not private and matches any of them, request is rejected.
-* If the IP is found in the whitelist and has not expired, request is approved.
+* If the IP is found in the whitelist and has not expired (subject to both sliding and fixed timeout), the last access timestamp is updated, request is approved.
 * If the visitor's URL key doesn't match any of the keys provided in `.env` or via headers, request is rejected.
 * If any TOTP secrets are defined and the visitor's URL TOTP code doesn't match any of them, request is rejected.
-* The IP is added to the whitelist with an expiration timestamp, request is approved.
+* The IP is added to the whitelist with a creation timestamp and a last access timestamp, request is approved.
 
 > **Remember** that the whitelist is stored in RAM and will be lost every time you stop or restart the app (or its container).
 
