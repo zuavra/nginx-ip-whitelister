@@ -28,7 +28,7 @@ import M_accept_ip from './middleware/accept_ip.js';
 import M_validate_totp from './middleware/validate_totp.js';
 globalLogger.flush('Loaded all middleware.');
 
-app.use(M_setup_local(globalStore));
+app.use(M_setup_local(globalStore, process.env.DEBUG));
 app.get('/approve', (_, res) => {
     res.statusCode = 200;
     res.end('APPROVED');
