@@ -1,7 +1,7 @@
 import { Netmask } from 'netmask';
 
 export default (_, res) => {
-    const allow = res.local.getHeaders('x-nipw-netmask-allow');
+    const allow = res.local.NETMASKS_ALLOWED;
     if (allow.length) {
         for (let i = 0; i < allow.length; i++) {
             const netmask = allow[i];
@@ -16,7 +16,7 @@ export default (_, res) => {
         return res.end();
     }
 
-    const deny = res.local.getHeaders('x-nipw-netmask-deny');
+    const deny = res.local.NETMASKS_DENIED;
     if (deny.length) {
         for (let i = 0; i < deny.length; i++) {
             const netmask = deny[i];

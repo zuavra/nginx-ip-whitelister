@@ -1,7 +1,7 @@
 import { createTOTP } from "totp-auth";
 
 export default (_, res) => {
-    const secrets = res.local.getHeaders('x-nipw-totp');
+    const secrets = res.local.TOTP_SECRETS;
     if (secrets.length) {
         for (let i = 0; i < secrets.length; i++) {
             const totp = createTOTP(secrets[i]);

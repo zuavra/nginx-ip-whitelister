@@ -6,7 +6,4 @@ export default (store, debug) => (req, res) => {
     res.local.logger = new Logger(debug);
 
     const allHeaders = req.headersDistinct || {};
-    res.local.getHeaders = headerName => {
-        return Array.isArray(allHeaders[headerName]) ? allHeaders[headerName] : [];
-    };
 };

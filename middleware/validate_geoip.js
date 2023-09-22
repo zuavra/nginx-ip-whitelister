@@ -6,8 +6,8 @@ const buffer = fs.readFileSync('./dbip-country-lite.mmdb');
 const geoip = new Reader(buffer);
 
 export default (_, res) => {
-    const allow = res.local.getHeaders('x-nipw-geoip-allow');
-    const deny = res.local.getHeaders('x-nipw-geoip-deny');
+    const allow = res.local.GEOIP_ALLOWED_COUNTRIES;
+    const deny = res.local.GEOIP_DENIED_COUNTRIES;
 
     if ((allow.length || deny.length)) {
         if (isPrivateIP(res.local.REMOTE_IP)) {
