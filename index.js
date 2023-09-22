@@ -8,12 +8,12 @@ process.on('uncaughtException', e => {
 
 import StupidHttp from './lib/stupid_http.js';
 import dotenv from 'dotenv';
-import Logger from './lib/logger.js';
+import createLoggerFactory from './lib/logger.js';
 
 dotenv.config();
 const app = new StupidHttp();
 const globalStore = new Map();
-const globalLogger = new Logger('yes');
+const globalLogger = createLoggerFactory('yes')();
 
 import M_validate_geoip from './middleware/validate_geoip.js';
 globalLogger.flush('Imported GeoIP database.');
@@ -28,7 +28,7 @@ import M_accept_ip from './middleware/accept_ip.js';
 import M_validate_totp from './middleware/validate_totp.js';
 globalLogger.flush('Loaded all middleware.');
 
-app.use(M_setup_local(globalStore, process.env.DEBUG));
+app.use(M_setup_local(globalStore, createLoggerFactory(process.env.DEBUG)));
 app.get('/approve', (_, res) => {
     res.statusCode = 200;
     res.end('APPROVED');
