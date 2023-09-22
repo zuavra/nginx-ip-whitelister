@@ -17,6 +17,7 @@ export default (_, res) => {
     res.local.NETMASKS_ALLOWED = getHeaders('x-nipw-netmask-allow');
     res.local.NETMASKS_DENIED = getHeaders('x-nipw-netmask-deny');
     res.local.FIXED_TIMEOUT = parseInterval(getHeaders('x-nipw-fixed-timeout')[0] || '');
+    res.local.SLIDING_TIMEOUT = parseInterval(getHeaders('x-nipw-sliding-timeout')[0] || '');
     // extract query string values in format ?key:totp
     const url = new URL(res.local.ORIGINAL_URI, 'http://ignore.this');
     const params = (url.search || '').match(/^\?([^:]+)(?::([^:]+))?/) || [];
