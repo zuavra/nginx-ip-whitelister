@@ -1,11 +1,10 @@
 import { URL } from 'node:url';
 import parseInterval from "../lib/parse_interval.js";
 
-const getHeaders = headerName => {
-    return Array.isArray(allHeaders[headerName]) ? allHeaders[headerName] : [];
-};
+export default (req, res) => {
+    const allHeaders = req.headersDistinct || {};
+    const getHeaders = headerName => Array.isArray(allHeaders[headerName]) ? allHeaders[headerName] : [];
 
-export default (_, res) => {
     // extract and preserve essential proxy parameters
     res.local.ORIGINAL_URI = getHeaders('x-original-uri')[0] || '';
     res.local.REMOTE_IP = getHeaders('x-forwarded-for')[0] || '';
