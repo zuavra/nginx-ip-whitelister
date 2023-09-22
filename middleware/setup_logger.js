@@ -1,9 +1,8 @@
 export default (_, res) => {
-    // tell logger what keys to scrub from logs
+    // tell logger the keys so it can scrub them from output
     res.local.PROXY_KEYS.map(res.local.logger.addScrubString);
-    res.local.logger.addScrubString(process.env.KEY);
-    // add ip and uri as log prefixes for every entry
+    // add ip as log prefix for every entry
     res.local.logger.addPrefix(res.local.REMOTE_IP);
-    // add the uri AFTER the scrubbers have been filled so it can be scrubbed itself
+    // add uri as log prefix; tell logger to scrub it
     res.local.logger.addPrefix(res.local.ORIGINAL_URI, true);
 }
