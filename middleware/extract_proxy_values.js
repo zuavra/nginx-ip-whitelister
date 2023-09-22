@@ -1,4 +1,5 @@
 import { URL } from 'node:url';
+import parseInterval from "../lib/parse_interval.js";
 
 const getHeaders = headerName => {
     return Array.isArray(allHeaders[headerName]) ? allHeaders[headerName] : [];
@@ -15,6 +16,7 @@ export default (_, res) => {
     res.local.GEOIP_DENIED_COUNTRIES = getHeaders('x-nipw-geoip-deny');
     res.local.NETMASKS_ALLOWED = getHeaders('x-nipw-netmask-allow');
     res.local.NETMASKS_DENIED = getHeaders('x-nipw-netmask-deny');
+    res.local.FIXED_TIMEOUT = parseInterval(getHeaders('x-nipw-fixed-timeout')[0] || '');
     // extract query string values in format ?key:totp
     const url = new URL(res.local.ORIGINAL_URI, 'http://ignore.this');
     const params = (url.search || '').match(/^\?([^:]+)(?::([^:]+))?/) || [];
