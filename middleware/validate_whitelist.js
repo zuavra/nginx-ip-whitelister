@@ -7,9 +7,9 @@ export default (_, res) => {
         const now = new Date().getTime();
 
         if (
-            entry.createdAt + (res.local.FIXED_TIMEOUT || FALLBACK_FIXED_TIMEOUT) < now
+            now - entry.createdAt < (res.local.FIXED_TIMEOUT || FALLBACK_FIXED_TIMEOUT)
             &&
-            entry.lastModifiedAt + (res.local.SLIDING_TIMEOUT || FALLBACK_SLIDING_TIMEOUT) < now
+            now - entry.lastModifiedAt < (res.local.SLIDING_TIMEOUT || FALLBACK_SLIDING_TIMEOUT)
         ) {
             res.local.store.set(res.local.REMOTE_IP,
                 Object.assign({}, entry, { lastModifiedAt: now })
