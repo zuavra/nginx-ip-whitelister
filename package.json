@@ -23,8 +23,11 @@
   "license": "MIT",
   "dependencies": {
     "dotenv": "=16.3.1",
-    "maxmind": "=4.3.11",
+    "jssha": "=3.3.1",
+    "maxmind": "=4.3.13",
+    "mmdb-lib": "=2.0.2",
     "netmask": "=2.0.2",
+    "tiny-lru": "=11.1.2",
     "totp-auth": "=1.0.11"
   }
 }
