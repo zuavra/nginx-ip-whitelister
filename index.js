@@ -28,16 +28,16 @@ import M_accept_ip from './middleware/accept_ip.js';
 import M_validate_totp from './middleware/validate_totp.js';
 globalLogger.flush('Loaded all middleware.');
 
-app.use(M_setup_local(globalStore, createLoggerFactory(process.env.DEBUG)));
-app.get('/approve', (_, res) => {
+app.use(null, M_setup_local(globalStore, createLoggerFactory(process.env.DEBUG)));
+app.use('/approve', (_, res) => {
     res.statusCode = 200;
     res.end('APPROVED');
 });
-app.get('/reject', (_, res) => {
+app.use('/reject', (_, res) => {
     res.statusCode = 403;
     res.end('REJECTED');
 });
-app.get('/verify',
+app.use('/verify',
     // order of middlewares is crucial
     M_extract_proxy_values,
     M_setup_logger,
@@ -49,7 +49,7 @@ app.get('/verify',
     M_accept_ip,
     (_, res) => res.end(),
 );
-app.use((error, _, res) => {
+app.use(null, (error, _, res) => {
     res.local.logger.flush('Server error:');
     console.error(error);
     res.statusCode = 500;
