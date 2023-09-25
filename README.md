@@ -159,8 +159,7 @@ The following variables need to be available in the app environment to work. You
 
 * `PORT`: defines the port that the validator listens on. *Defaults to `3000`.*
 * `HOST`: defines the interface that the validator listens on. *Defaults to `0.0.0.0`.*
-* `KEY`: you can specify an access key which will always be checked. Leave blank to disable this and to only check keys passed from Nginx configuration.
-* `DEBUG`: if set to `yes` it will log every request to the standard output. By default it will only log the initial "Listening..." message.
+* `DEBUG`: if set to `yes` it will log every request to the standard output. By default it will only log the startup messages.
 
 ## 6. How to integrate with Nginx
 
@@ -200,10 +199,12 @@ The following headers can optionally be passed to the validator from Nginx to ad
 
 The header names are case insensitive. You can only use these headers once each – additional uses will be ignored.
 
+> The timeout policy is always enforced, whether you use these headers or not. Using them allows you to adjust the timeouts – see the defaults below.
+
 * `x-nipw-fixed-timeout`: A strictly positive integer, followed by the suffix `d`, `h`, `m` or `s` to indicate an amount of days, hours, minutes or seconds, respectively. The fixed timeout is compared against the moment when an IP was first added to the whitelist and it does not change. In other words, if you set a fixed timeout of `6h`, the IP will be de-listed 6 hours later, period. If you don't provide this header, *the fixed timeout defaults to 2 hours*.
 * `x-nipw-sliding-timeout`: Same format as the fixed timeout. The sliding timeout is compared against the most recent access from that IP, and if successful the last access is reset to now. In other words, if you set a sliding timeout of '30m', the IP will not be de-listed unless there's no access for 30 straight minutes. If you don't provide this header, *the sliding timeout defaults to 5 minutes*.
 
-> Both timeout policies are enforced in parallel – each IP has a fixed time window from when it started, as well as a condition to not be inactive for too long.
+> Both timeout policies are enforced in parallel – each IP has a fixed time window from when it started *as well as* a condition to not be inactive for too long.
 
 ### 6.4. Condition headers
 
@@ -232,7 +233,7 @@ The logic works in the following order:
 * If any GeoIP allow countries are defined and the IP is not private and doesn't match any of them, request is rejected.
 * If any GeoIP deny countries are defined and the IP is not private and matches any of them, request is rejected.
 * If the IP is found in the whitelist and has not expired (subject to both sliding and fixed timeout), the last access timestamp is updated, request is approved.
-* If the visitor's URL key doesn't match any of the keys provided in `.env` or via headers, request is rejected.
+* If the visitor's URL key doesn't match any of the defined keys, request is rejected.
 * If any TOTP secrets are defined and the visitor's URL TOTP code doesn't match any of them, request is rejected.
 * The IP is added to the whitelist with a creation timestamp and a last access timestamp, request is approved.
 
