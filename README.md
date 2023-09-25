@@ -1,14 +1,19 @@
 # nginx-ip-whitelister
 
-This is a server app that serves as a companion for an [Nginx](https://nginx.org/en/) install configured as a reverse proxy and compiled with the [`ngx_http_auth_request_module`](https://nginx.org/en/docs/http/ngx_http_auth_request_module.html).
+This is a Node.js server app that acts as a companion for an [Nginx](https://nginx.org/en/) install configured as reverse proxy and compiled with the [`ngx_http_auth_request_module`](https://nginx.org/en/docs/http/ngx_http_auth_request_module.html).
 
-It validates Nginx requests against a list of IP addresses. In order for an IP to be added to the whitelist a key must be presented in a query string. Once whitelisted, each IP will be valid for a configurable amount of time.
+It validates proxy requests against a list of IP addresses. In order for an IP to be added to the list a key must be presented in a query string. Once whitelisted, each IP will be valid for a configurable amount of time.
 
 This app was designed to be particularly easy to integrate with [Nginx Proxy Manager](https://github.com/NginxProxyManager/nginx-proxy-manager/) running in Docker.
 
+This app is undergoing heavy development and is still being designed. Breaking changes are made frequently. Use at your own risk.
+
 <!-- TOC -->
-- [1. Obligatory security warning](#1-obligatory-security-warning)
-  - [1.1. What to do if you suspect trouble](#11-what-to-do-if-you-suspect-trouble)
+- [1. Security warning](#1-security-warning)
+  - [1.1. Don't use this](#11-dont-use-this)
+  - [1.2. There are better ways to secure your server](#12-there-are-better-ways-to-secure-your-server)
+  - [1.3. How do I mitigate the security risk?](#13-how-do-i-mitigate-the-security-risk)
+  - [1.4. What to do if you suspect trouble](#14-what-to-do-if-you-suspect-trouble)
 - [2. Prerequisites](#2-prerequisites)
 - [3. How does it work?](#3-how-does-it-work)
 - [4. How to run the whitelister](#4-how-to-run-the-whitelister)
@@ -28,28 +33,42 @@ This app was designed to be particularly easy to integrate with [Nginx Proxy Man
 - [8. Credits](#8-credits)
 <!-- /TOC -->
 
-## 1. Obligatory security warning
+## 1. Security warning
 
-__*nginx-ip-whitelister*__ was designed to be a security improvement over leaving your Emby/Jellyfin completely open to the whole Internet.
+### 1.1. Don't use this
 
-**It is not better than using a full-fledged VPN**. If you already have OpenVPN, WireGuard, Tailscale or a SSH tunnel working and you're considering trading them for this, think twice!
+⚠️ **Never use this** while on public WiFi at a cafe, hotel, airport, festival, mall etc., on a cellular connection (cell tower), or at work.
 
-While having Emby/Jellyfin exposed directly as HTTP links is more convenient, it's also less secure. You will be literally trading security for convenience.
+By granting access to your public IP in such a place you grant access to an entire building or even an entire area full of people.
+
+In such situations you MUST use a secure tunnel (VPN/SSH) or an IAM provider that uses cookies over TLS.
+
+### 1.2. There are better ways to secure your server
+
+__*nginx-ip-whitelister*__ was designed to be a security improvement over leaving your Emby/Jellyfin completely open to the whole Internet. That's not a very high bar.
+
+**There are better methods**. If you've arrived to this page because you want to secure your server you probably don't want this. Consider using a VPN like OpenVPN/WireGuard/Tailscale, or an SSH tunnel, or an IAM provider like Authelia/Authentik.
+
+This project solves a very specific problem: the fact you can't easily share the VPN/SSH/IAM access from your phone to other devices, for example if you want to cast to someone's smart TV, Chromecast or Apple TV while visiting and using their WiFi.
+
+...but it solves it in a rather carefree manner, by granting access to whatever public IP you may be using at the time. There are many ways in which this can and **will** backfire if you don't know what you're doing.
+
+### 1.3. How do I mitigate the security risk?
 
 In case you're still foolish enough to use this:
 
-* __*nginx-ip-whitelister*__ won't work on its own. You must use Nginx as a reverse proxy.
+* __*nginx-ip-whitelister*__ won't work on its own. You must use it alongside Nginx acting as a reverse proxy.
 * **Enable HTTPS** on the reverse proxy! If you don't do this you might as well give up the whole thing right now.
 * Use a **long key** for validation. For example:
   ```
   dd status=none if=/dev/urandom bs=1024 count=1|sha256sum
   ```
 * Consider enabling **Basic Authentication** on the reverse proxy as an additional layer of protection and using a **long username and password**.
-* Understand that there's no 100% foolproof way to prevent the access link from making its way into the world, hopping from friend to friend.
+* Understand that there's **no way** to prevent the access link from making its way into the world, hopping from friend to friend.
 
-### 1.1. What to do if you suspect trouble
+### 1.4. What to do if you suspect trouble
 
-* **Stop __*nginx-ip-whitelister*__.** This will cut all access instantly, because Nginx will refuse requests if it cannot reach the validating backend.
+* **Stop __*nginx-ip-whitelister*__** (kill the app or the docker container). Nginx will refuse requests if it cannot reach the validating backend.
 * **Change the keys** before you restart the app/container.
 * **Check the logs** to see what went wrong.
 
