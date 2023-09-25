@@ -9,7 +9,9 @@
       "import": "./index.js"
     }
   },
-  "scripts": {},
+  "scripts": {
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest"
+  },
   "keywords": [
     "nginx",
     "ngx_http_auth_request_module",
@@ -29,5 +31,8 @@
     "netmask": "=2.0.2",
     "tiny-lru": "=11.1.2",
     "totp-auth": "=1.0.11"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
   }
 }
