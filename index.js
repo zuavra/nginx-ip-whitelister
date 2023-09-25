@@ -7,17 +7,19 @@ process.on('uncaughtException', e => {
 });
 
 import dotenv from 'dotenv';
-import StupidHttp from './lib/stupid_http.js';
-import createLoggerFactory from './lib/logger.js';
+import fs from 'node:fs';
+import { createTOTP } from "totp-auth";
+import parseInterval from "./lib/parse_interval.js";
+import isPrivateIP from './lib/private_ip.js';
+import factories from './lib/factories.js';
 
 dotenv.config();
-const app = new StupidHttp();
-const globalStore = new Map();
-const globalLogger = createLoggerFactory('yes')();
+const server = factories.httpFactory();
+const app = factories.appFactory(server, factories.urlFactory);
+const globalStore = factories.memStoreFactory();
+const globalLogger = factories.loggerFactory('yes', factories.dateFactory);
 
 import M_validate_geoip from './middleware/validate_geoip.js';
-globalLogger.flush('Imported GeoIP database.');
-
 import M_setup_local from './middleware/setup_local.js';
 import M_setup_logger from './middleware/setup_logger.js';
 import M_validate_netmasks from './middleware/validate_netmasks.js';
@@ -28,7 +30,13 @@ import M_accept_ip from './middleware/accept_ip.js';
 import M_validate_totp from './middleware/validate_totp.js';
 globalLogger.flush('Loaded all middleware.');
 
-app.use(null, M_setup_local(globalStore, createLoggerFactory(process.env.DEBUG)));
+const buffer = fs.readFileSync('./dbip-country-lite.mmdb');
+const geoIP = factories.mmdbReaderFactory(buffer);
+globalLogger.flush('Imported GeoIP database.');
+
+app.use(null,
+    M_setup_local(globalStore, process.env.DEBUG, factories.loggerFactory, factories.dateFactory),
+);
 app.use('/approve', (_, res) => {
     res.statusCode = 200;
     res.end('APPROVED');
@@ -39,14 +47,14 @@ app.use('/reject', (_, res) => {
 });
 app.use('/verify',
     // order of middlewares is crucial
-    M_extract_proxy_values,
+    M_extract_proxy_values(factories.urlFactory, parseInterval),
     M_setup_logger,
-    M_validate_netmasks,
-    M_validate_geoip,
-    M_validate_whitelist,
+    M_validate_netmasks(factories.netmaskFactory),
+    M_validate_geoip(geoIP, isPrivateIP),
+    M_validate_whitelist(factories.dateFactory),
     M_validate_keys,
-    M_validate_totp,
-    M_accept_ip,
+    M_validate_totp(createTOTP),
+    M_accept_ip(factories.dateFactory),
     (_, res) => res.end(),
 );
 app.use(null, (error, _, res) => {

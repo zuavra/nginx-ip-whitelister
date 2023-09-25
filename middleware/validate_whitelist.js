@@ -1,17 +1,16 @@
-const FALLBACK_FIXED_TIMEOUT = 2 * 60 * 60 * 1000;
-const FALLBACK_SLIDING_TIMEOUT = 5 * 60 * 1000;
-
-export default (_, res) => {
-    if (res.local.store.has(res.local.REMOTE_IP)) {
-        const entry = res.local.store.get(res.local.REMOTE_IP);
-        const now = new Date().getTime();
+export default
+(dateFactory) =>
+(_, res) => {
+    if (res.local.store.has(res.local.remoteIP)) {
+        const entry = res.local.store.get(res.local.remoteIP);
+        const now = dateFactory().getTime();
 
         if (
-            now - entry.createdAt < (res.local.FIXED_TIMEOUT || FALLBACK_FIXED_TIMEOUT)
+            now - entry.createdAt < (res.local.fixedTimeout || 72e5)
             &&
-            now - entry.lastModifiedAt < (res.local.SLIDING_TIMEOUT || FALLBACK_SLIDING_TIMEOUT)
+            now - entry.lastModifiedAt < (res.local.slidingTimeout || 3e5)
         ) {
-            res.local.store.set(res.local.REMOTE_IP,
+            res.local.store.set(res.local.remoteIP,
                 Object.assign({}, entry, { lastModifiedAt: now })
             );
 
@@ -21,10 +20,10 @@ export default (_, res) => {
         }
 
         // entry has expired, remove from store, will resume normal checks
-        res.local.store.delete(res.local.REMOTE_IP);
+        res.local.store.delete(res.local.remoteIP);
         res.local.logger.queue('IP found but expired.');
     }
     else {
         res.local.logger.queue('IP not found.');
     }
-}
+};
