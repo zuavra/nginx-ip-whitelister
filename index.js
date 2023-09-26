@@ -23,11 +23,12 @@ import M_validate_geoip from './middleware/validate_geoip.js';
 import M_setup_local from './middleware/setup_local.js';
 import M_setup_logger from './middleware/setup_logger.js';
 import M_validate_netmasks from './middleware/validate_netmasks.js';
-import M_validate_whitelist from './middleware/validate_whitelist.js';
+import M_validate_ip from './middleware/validate_ip.js';
 import M_extract_proxy_values from './middleware/extract_proxy_values.js';
 import M_validate_keys from './middleware/validate_keys.js';
 import M_accept_ip from './middleware/accept_ip.js';
 import M_validate_totp from './middleware/validate_totp.js';
+import M_logout from './middleware/logout.js';
 globalLogger.flush('Loaded all middleware.');
 
 const buffer = fs.readFileSync('./dbip-country-lite.mmdb');
@@ -51,7 +52,8 @@ app.use('/verify',
     M_setup_logger,
     M_validate_netmasks(factories.netmaskFactory),
     M_validate_geoip(geoIP, isPrivateIP),
-    M_validate_whitelist(factories.dateFactory),
+    M_logout,
+    M_validate_ip(factories.dateFactory),
     M_validate_keys,
     M_validate_totp(createTOTP),
     M_accept_ip(factories.dateFactory),

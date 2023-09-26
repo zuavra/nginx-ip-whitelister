@@ -15,22 +15,23 @@ This app is undergoing heavy development and is still being designed. Breaking c
   - [1.3. How do I mitigate the security risk?](#13-how-do-i-mitigate-the-security-risk)
   - [1.4. What to do if you suspect trouble](#14-what-to-do-if-you-suspect-trouble)
 - [2. Prerequisites](#2-prerequisites)
-- [3. How does it work?](#3-how-does-it-work)
-- [4. How to run the whitelister](#4-how-to-run-the-whitelister)
-  - [4.1. Running as a standalone app](#41-running-as-a-standalone-app)
-  - [4.2. Running with Docker](#42-running-with-docker)
-    - [4.2.1. Build a Docker image](#421-build-a-docker-image)
-    - [4.2.2. Run a standalone Docker container](#422-run-a-standalone-docker-container)
-    - [4.2.3. Run as a companion container to Nginx Proxy Manager](#423-run-as-a-companion-container-to-nginx-proxy-manager)
-- [5. Configuring the validator](#5-configuring-the-validator)
-  - [5.1. Environment variables](#51-environment-variables)
-- [6. How to integrate with Nginx](#6-how-to-integrate-with-nginx)
-  - [6.1. Nginx proxy host configuration](#61-nginx-proxy-host-configuration)
-  - [6.2. Validation URLs](#62-validation-urls)
-  - [6.3. Timeout headers](#63-timeout-headers)
-  - [6.4. Condition headers](#64-condition-headers)
-- [7. Validation logic](#7-validation-logic)
-- [8. Credits](#8-credits)
+- [3. How do I use it?](#3-how-do-i-use-it)
+- [4. How does it work?](#4-how-does-it-work)
+- [5. How to run the whitelister](#5-how-to-run-the-whitelister)
+  - [5.1. Running as a standalone app](#51-running-as-a-standalone-app)
+  - [5.2. Running with Docker](#52-running-with-docker)
+    - [5.2.1. Build a Docker image](#521-build-a-docker-image)
+    - [5.2.2. Run a standalone Docker container](#522-run-a-standalone-docker-container)
+    - [5.2.3. Run as a companion container to Nginx Proxy Manager](#523-run-as-a-companion-container-to-nginx-proxy-manager)
+- [6. Configuring the validator](#6-configuring-the-validator)
+  - [6.1. Environment variables](#61-environment-variables)
+- [7. How to integrate with Nginx](#7-how-to-integrate-with-nginx)
+  - [7.1. Nginx proxy host configuration](#71-nginx-proxy-host-configuration)
+  - [7.2. Validation URLs](#72-validation-urls)
+  - [7.3. Timeout headers](#73-timeout-headers)
+  - [7.4. Condition headers](#74-condition-headers)
+- [8. Validation logic](#8-validation-logic)
+- [9. Credits](#9-credits)
 <!-- /TOC -->
 
 ## 1. Security warning
@@ -69,7 +70,8 @@ In case you're still foolish enough to use this:
 ### 1.4. What to do if you suspect trouble
 
 * **Stop __*nginx-ip-whitelister*__** (kill the app or the docker container). Nginx will refuse requests if it cannot reach the validating backend.
-* **Change the keys** before you restart the app/container.
+* If you're unable to stop the app, you can **use `/?LOGOUT` as a key** (case-insensitive) and it will de-list your current IP.
+* **Change the keys** before you start the app/container back up again.
 * **Check the logs** to see what went wrong.
 
 ## 2. Prerequisites
@@ -85,13 +87,23 @@ In order to use __*nginx-ip-whitelister*__ you must have already accomplished th
 
 > It is beyond the scope of this documentation to explain how to achieve all this. For what it's worth I recommend using [Nginx Proxy Manager](https://github.com/NginxProxyManager/nginx-proxy-manager/) because it makes some of the things above a lot easier.
 
-## 3. How does it work?
+## 3. How do I use it?
 
 By default your Emby/Jellyfin install will show 403 errors to any visitor. 
 
-To make it work your friend and relatives need to use a link like this:
+To make it work you need to use a link like this:
 
 `https://your.domain[:PORT]/?ACCESS-KEY[:TOTP]`
+
+This will record your current IP and allow it normal access for a period of time. If you're using someone's WiFi all the devices using it will have access too, meaning you can cast to local media devices, TVs etc.
+
+If you want to disallow the IP use "LOGOUT" as a key:
+
+`https://your.domain[:PORT]/?LOGOUT`
+
+You can use the proxy host configuration to pass additional configuration options to the validator as HTTP headers. It's a good idea to configure different keys for different people, at the very least. Please read the configuration section to find out more.
+
+## 4. How does it work?
 
 The link goes to the Nginx reverse proxy, where it runs against the Nginx proxy configuration for `your.domain`.
 
@@ -101,11 +113,11 @@ That 3rd party URL belongs to the __*nginx-ip-whitelister*__ – which needs to 
 
 Whenever __*nginx-ip-whitelister*__ sees a valid access key in a request URL it adds the visitor's IP address to a whitelist. Once that happens, all the following requests from the IP (which usually means everybody and everything in their LAN) will be allowed through.
 
-You can optionally configure more conditions for the visitors on top of using a key, such as netmasks, GeoIP, TOTP codes etc. 
+You can optionally configure more conditions for the visitors such as IP netmasks, GeoIP, TOTP codes etc. 
 
-## 4. How to run the whitelister 
+## 5. How to run the whitelister 
 
-### 4.1. Running as a standalone app
+### 5.1. Running as a standalone app
 
 Copy `.env.example` to `.env` and edit to your liking. Then:
 
@@ -116,9 +128,9 @@ $ node index.js
 
 You may want to use a tool like `supervisor` or `nodemon` that will restart the whitelister if it fails.
 
-### 4.2. Running with Docker
+### 5.2. Running with Docker
 
-#### 4.2.1. Build a Docker image
+#### 5.2.1. Build a Docker image
 
 You can use the `Dockerfile` and `.dockerignore` included in the package and run the following command from the project root:
 
@@ -130,7 +142,7 @@ Yes, there's a dot at the end of the command.
 
 This will build the image and publish it to your machine's local image repository, where it's now ready for being used by Docker containers:
 
-#### 4.2.2. Run a standalone Docker container
+#### 5.2.2. Run a standalone Docker container
 
 You can run a Docker container that listens on the host's network interface. Use this if your Nginx or Nginx Proxy Manager are able to communicate directly with the host network.
 
@@ -138,7 +150,7 @@ See the `docker-compose-standalone.yaml` file for an example.
 
 You can of course also rely on `.env` if you place this in the same dir, omit the `environment:` section, and define the port as `- "${PORT}:${PORT}/tcp"`.
 
-#### 4.2.3. Run as a companion container to Nginx Proxy Manager
+#### 5.2.3. Run as a companion container to Nginx Proxy Manager
 
 If you intend to run both Nginx Proxy Manager and **_nginx-ip-whitelister_** as Docker containers you need to define a Docker network between them so the proxy will be able to reach the validator.
 
@@ -170,9 +182,9 @@ If you intend to run both Nginx Proxy Manager and **_nginx-ip-whitelister_** as 
 
 See the `docker-compose-proxy-manager.yaml` file for an example that combines both service definitions into a single file.
 
-## 5. Configuring the validator
+## 6. Configuring the validator
 
-### 5.1. Environment variables
+### 6.1. Environment variables
 
 The following variables need to be available in the app environment to work. You can defined them in an `.env` file placed near `index.js` if you're running a standalone app, or provide them in the compose configuration, or as docker command line parameters etc.
 
@@ -180,9 +192,9 @@ The following variables need to be available in the app environment to work. You
 * `HOST`: defines the interface that the validator listens on. *Defaults to `0.0.0.0`.*
 * `DEBUG`: if set to `yes` it will log every request to the standard output. By default it will only log the startup messages.
 
-## 6. How to integrate with Nginx
+## 7. How to integrate with Nginx
 
-### 6.1. Nginx proxy host configuration
+### 7.1. Nginx proxy host configuration
 
 In order to tell Nginx to use __*nginx-ip-whitelister*__ you need to use the `auth_request` directive to validate requests against the correct verification URL, and pass to it the original URI and the remote IP address.
 
@@ -206,13 +218,13 @@ location = /__auth {
 
 If you're running the app standalone or in a non-networked container please replace `nginx-iw` with the appropriate hostname or IP address.
 
-### 6.2. Validation URLs
+### 7.2. Validation URLs
 
 Use `/verify` to call the conditional validator.
 
 You can also use `/approve` to always pass the check, and `/reject` to always fail the check.
 
-### 6.3. Timeout headers
+### 7.3. Timeout headers
 
 The following headers can optionally be passed to the validator from Nginx to adjust the timeout policy for the whitelist.
 
@@ -225,7 +237,7 @@ The header names are case insensitive. You can only use these headers once each 
 
 > Both timeout policies are enforced in parallel – each IP has a fixed time window from when it started *as well as* a condition to not be inactive for too long.
 
-### 6.4. Condition headers
+### 7.4. Condition headers
 
 The following headers can optionally be passed to the validator from Nginx to impose additional condition upon the requests.
 
@@ -243,7 +255,7 @@ The header names are case insensitive. Most of these headers can be used multipl
 
 > Please understand that GeoIP matching is far from perfect. This project uses a "lite" GeoIP database which is not super-accurate, but even exhaustive databases can make mistakes. Accept the fact that occasionally you will end up blocking (or allowing) an IP that shouldn't be.
 
-## 7. Validation logic
+## 8. Validation logic
 
 The logic works in the following order:
 
@@ -260,6 +272,6 @@ The logic works in the following order:
 
 > **Remember** that the whitelist is stored in RAM and will be lost every time you stop or restart the app (or its container).
 
-## 8. Credits
+## 9. Credits
 
 This project uses [IP Geolocation by DB-IP](https://db-ip.com).
