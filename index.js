@@ -29,6 +29,8 @@ import M_validate_keys from './middleware/validate_keys.js';
 import M_accept_ip from './middleware/accept_ip.js';
 import M_validate_totp from './middleware/validate_totp.js';
 import M_logout from './middleware/logout.js';
+import M_status from './middleware/status.js';
+import M_delete from './middleware/delete.js';
 globalLogger.flush('Loaded all middleware.');
 
 const buffer = fs.readFileSync('./dbip-country-lite.mmdb');
@@ -46,6 +48,8 @@ app.use('/reject', (_, res) => {
     res.statusCode = 403;
     res.end('REJECTED');
 });
+app.use('/status', M_status(factories.dateFactory, geoIP, humanInterval));
+app.use('/delete', M_delete);
 app.use('/verify',
     // order of middlewares is crucial
     M_extract_proxy_values(factories.urlFactory, parseInterval),

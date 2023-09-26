@@ -218,11 +218,15 @@ location = /__auth {
 
 If you're running the app standalone or in a non-networked container please replace `nginx-iw` with the appropriate hostname or IP address.
 
-### 7.2. Validation URLs
+### 7.2. Validator URLs
 
-Use `/verify` to call the conditional validator.
+Use `/verify` from the proxy host config to call the conditional validator. You can also use `/approve` to always pass the check, and `/reject` to always fail the check (for integration tests).
 
-You can also use `/approve` to always pass the check, and `/reject` to always fail the check.
+Use `/status` directly to see a dump of the current whitelist, with links to `/delete?IP` that allow you to kick out individual addresses.
+
+⚠️ None of these endpoints are secured so do not expose them on the Internet. Ideally they should only be exposed on the internal Docker network between the Nginx Proxy Manager container and the validator container; or, if using NPM and the validator as standalone apps, on the localhost interface.
+
+If you'd like to access `/status` and `/delete` from elsewhere, map the validator host as a proxy host.
 
 ### 7.3. Timeout headers
 

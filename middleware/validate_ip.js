@@ -8,13 +8,15 @@ export default
     }
 
     const now = dateFactory().getTime();
-    if (
-        now - entry.createdAt < (res.local.fixedTimeout || 72e5)
-        &&
-        now - entry.lastModifiedAt < (res.local.slidingTimeout || 3e5)
-    ) {
+    const fixedTimeout = res.local.fixedTimeout || 72e5;
+    const slidingTimeout = res.local.slidingTimeout || 3e5;
+    if (now - entry.createdAt < fixedTimeout && now - entry.lastModifiedAt < slidingTimeout) {
         res.local.store.set(res.local.remoteIP,
-            Object.assign({}, entry, { lastModifiedAt: now })
+            Object.assign({}, entry, {
+                lastModifiedAt: now,
+                fixedTimeout,
+                slidingTimeout,
+            })
         );
 
         res.statusCode = 200;
