@@ -9,7 +9,7 @@ process.on('uncaughtException', e => {
 import dotenv from 'dotenv';
 import fs from 'node:fs';
 import { createTOTP } from "totp-auth";
-import parseInterval from "./lib/parse_interval.js";
+import { parseInterval, humanInterval } from "./lib/time.js";
 import isPrivateIP from './lib/private_ip.js';
 import factories from './lib/factories.js';
 
