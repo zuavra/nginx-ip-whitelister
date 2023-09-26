@@ -1,21 +1,16 @@
-import { Reader } from 'maxmind';
-import fs from 'node:fs';
-import isPrivateIP from '../lib/private_ip.js';
-
-const buffer = fs.readFileSync('./dbip-country-lite.mmdb');
-const geoip = new Reader(buffer);
-
-export default (_, res) => {
-    const allow = res.local.GEOIP_ALLOWED_COUNTRIES;
-    const deny = res.local.GEOIP_DENIED_COUNTRIES;
+export default
+(geoIP, isPrivateIP) =>
+(_, res) => {
+    const allow = res.local.goodCountries;
+    const deny = res.local.badCountries;
 
     if ((allow.length || deny.length)) {
-        if (isPrivateIP(res.local.REMOTE_IP)) {
+        if (isPrivateIP(res.local.remoteIP)) {
             res.local.logger.queue('Private IP, skips country check.');
             return;
         }
 
-        const geoLocation = geoip.get(res.local.REMOTE_IP);
+        const geoLocation = geoIP.get(res.local.remoteIP);
         const countryCode = geoLocation?.country?.iso_code;
 
         if (countryCode) {
@@ -40,4 +35,4 @@ export default (_, res) => {
             }
         }
     }
-}
+};

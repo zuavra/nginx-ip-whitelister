@@ -1,25 +1,24 @@
-import { URL } from 'node:url';
-import parseInterval from "../lib/parse_interval.js";
-
-export default (req, res) => {
+export default
+(urlFactory, parseInterval) =>
+(req, res) => {
     const allHeaders = req.headersDistinct || {};
     const getHeaders = headerName => Array.isArray(allHeaders[headerName]) ? allHeaders[headerName] : [];
 
     // extract and preserve essential proxy parameters
-    res.local.ORIGINAL_URI = getHeaders('x-original-uri')[0] || '';
-    res.local.REMOTE_IP = getHeaders('x-forwarded-for')[0] || '';
+    res.local.originalURI = getHeaders('x-original-uri')[0] || '';
+    res.local.remoteIP = getHeaders('x-forwarded-for')[0] || '';
     // extract and preserve optional proxy parameters
-    res.local.PROXY_KEYS = getHeaders('x-nipw-key');
-    res.local.TOTP_SECRETS = getHeaders('x-nipw-totp');
-    res.local.GEOIP_ALLOWED_COUNTRIES = getHeaders('x-nipw-geoip-allow');
-    res.local.GEOIP_DENIED_COUNTRIES = getHeaders('x-nipw-geoip-deny');
-    res.local.NETMASKS_ALLOWED = getHeaders('x-nipw-netmask-allow');
-    res.local.NETMASKS_DENIED = getHeaders('x-nipw-netmask-deny');
-    res.local.FIXED_TIMEOUT = parseInterval(getHeaders('x-nipw-fixed-timeout')[0] || '');
-    res.local.SLIDING_TIMEOUT = parseInterval(getHeaders('x-nipw-sliding-timeout')[0] || '');
+    res.local.accessKeys = getHeaders('x-nipw-key');
+    res.local.totpSecrets = getHeaders('x-nipw-totp');
+    res.local.goodCountries = getHeaders('x-nipw-geoip-allow');
+    res.local.badCountries = getHeaders('x-nipw-geoip-deny');
+    res.local.goodNetmasks = getHeaders('x-nipw-netmask-allow');
+    res.local.badNetmasks = getHeaders('x-nipw-netmask-deny');
+    res.local.fixedTimeout = parseInterval(getHeaders('x-nipw-fixed-timeout')[0] || '');
+    res.local.slidingTimeout = parseInterval(getHeaders('x-nipw-sliding-timeout')[0] || '');
     // extract query string values in format ?key:totp
-    const url = new URL(res.local.ORIGINAL_URI, 'http://ignore.this');
+    const url = urlFactory(res.local.originalURI, 'http://ignore.this');
     const params = (url.search || '').match(/^\?([^:]+)(?::([^:]+))?/) || [];
-    res.local.VISITOR_KEY = params[1] || '';
-    res.local.VISITOR_TOTP = params[2] || '';
-}
+    res.local.visitorKey = params[1] || '';
+    res.local.visitorTOTP = params[2] || '';
+};

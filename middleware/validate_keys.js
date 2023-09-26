@@ -1,6 +1,6 @@
 export default (_, res) => {
-    if (res.local.VISITOR_KEY) {
-        const locatedKey = res.local.PROXY_KEYS.indexOf(res.local.VISITOR_KEY);
+    if (res.local.visitorKey) {
+        const locatedKey = res.local.accessKeys.indexOf(res.local.visitorKey);
         if (locatedKey !== -1) {
             res.local.logger.queue(`Matched key #${locatedKey}.`);
             return;
@@ -9,4 +9,4 @@ export default (_, res) => {
     res.statusCode = 403;
     res.local.logger.flush('No keys matched. Rejected.');
     return res.end();
-}
+};
