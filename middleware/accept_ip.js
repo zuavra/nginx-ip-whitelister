@@ -5,6 +5,7 @@ export default
     res.local.store.set(res.local.remoteIP, {
         createdAt: now,
         lastModifiedAt: now,
+        usedKey: res.local.visitorKey,
     });
 
     res.statusCode = 200;

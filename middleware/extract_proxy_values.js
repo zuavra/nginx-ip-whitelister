@@ -9,6 +9,7 @@ export default
     res.local.remoteIP = getHeaders('x-forwarded-for')[0] || '';
     // extract and preserve optional proxy parameters
     res.local.accessKeys = getHeaders('x-nipw-key');
+    res.local.keyIsolation = (String(getHeaders('x-nipw-key-isolation')[0]).toLowerCase() !== 'disabled');
     res.local.totpSecrets = getHeaders('x-nipw-totp');
     res.local.goodCountries = getHeaders('x-nipw-geoip-allow');
     res.local.badCountries = getHeaders('x-nipw-geoip-deny');

@@ -229,11 +229,12 @@ The header names are case insensitive. You can only use these headers once each 
 
 The following headers can optionally be passed to the validator from Nginx to impose additional condition upon the requests.
 
-The header names are case insensitive. Each of these headers can be used multiple times.
+The header names are case insensitive. Most of these headers can be used multiple times (exceptions are noted below).
 
 > Please don't use commas or semicolons inside header values, they sometimes cause header libraries to split the value into separate ones.
 
 * `x-nipw-key`: Define additional authentication keys that will only apply to this proxy host.
+* `x-nipw-key-isolation`: Value can be *"enabled" (default)* or "disabled" (case-insensitive). This header is only processed once. When key isolation is enabled it prevents keys from being used by multiple IPs at the same time; once an IP has been whitelisted the key it used can't be used again until the IP expires.
 * `x-nipw-netmask-allow`: Define one or more IP network masks to allow. An IP that doesn't match any of these masks will be rejected.
 * `x-nipw-netmask-deny`: Define one or more IP network masks to deny. An IP that matches any of these masks will be rejected. These headers will be ignored if any `-netmask-allow` headers are defined.
 * `x-nipw-geoip-allow`: Define one or more two-letter ISO-3166-1 country codes to allow. An IP that doesn't match any of these countries will be rejected. Private IPs always pass this check.
@@ -251,10 +252,11 @@ The logic works in the following order:
 * If any deny netmasks are defined and the IP matches any of them, request is rejected.
 * If any GeoIP allow countries are defined and the IP is not private and doesn't match any of them, request is rejected.
 * If any GeoIP deny countries are defined and the IP is not private and matches any of them, request is rejected.
-* If the IP is found in the whitelist and has not expired (subject to both sliding and fixed timeout), the last access timestamp is updated, request is approved.
+* If the IP is found in the whitelist and has not expired (subject to both sliding and fixed timeout), request is approved.
 * If the visitor's URL key doesn't match any of the defined keys, request is rejected.
+* If key isolation is in effect and the visitor's key was already used by another IP in the whitelist, request is rejected.
 * If any TOTP secrets are defined and the visitor's URL TOTP code doesn't match any of them, request is rejected.
-* The IP is added to the whitelist with a creation timestamp and a last access timestamp, request is approved.
+* The IP is added to the whitelist, request is approved.
 
 > **Remember** that the whitelist is stored in RAM and will be lost every time you stop or restart the app (or its container).
 
