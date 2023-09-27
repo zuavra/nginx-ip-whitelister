@@ -64,8 +64,7 @@ app.use('/verify',
     (_, res) => res.end(),
 );
 app.use(null, (error, _, res) => {
-    res.local.logger.flush('Server error:');
-    console.error(error);
+    console.error('Server error:', error);
     res.statusCode = 500;
     res.end('FATAL ERROR');
 });
