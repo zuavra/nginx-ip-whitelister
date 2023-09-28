@@ -2,7 +2,7 @@
 
 This is a Node.js server app that acts as a companion for an [Nginx](https://nginx.org/en/) install configured as reverse proxy and compiled with the [`ngx_http_auth_request_module`](https://nginx.org/en/docs/http/ngx_http_auth_request_module.html).
 
-It validates proxy requests against a list of IP addresses. In order for an IP to be added to the list a key must be presented in a query string. Once whitelisted, each IP will be valid for a configurable amount of time.
+It validates proxy requests against a list of IP addresses. In order for an IP to be added to the list a key must be presented in the query string. Once whitelisted, each IP will be valid for a configurable amount of time.
 
 This app was designed to be particularly easy to integrate with [Nginx Proxy Manager](https://github.com/NginxProxyManager/nginx-proxy-manager/) running in Docker.
 
@@ -16,20 +16,20 @@ This app is undergoing heavy development and is still being designed. Breaking c
   - [1.4. What to do if you suspect trouble](#14-what-to-do-if-you-suspect-trouble)
 - [2. Prerequisites](#2-prerequisites)
 - [3. How do I use it?](#3-how-do-i-use-it)
-- [4. How does it work?](#4-how-does-it-work)
+- [4. How does it work under the hood?](#4-how-does-it-work-under-the-hood)
 - [5. How to run the whitelister](#5-how-to-run-the-whitelister)
   - [5.1. Running as a standalone app](#51-running-as-a-standalone-app)
   - [5.2. Running with Docker](#52-running-with-docker)
     - [5.2.1. Build a Docker image](#521-build-a-docker-image)
     - [5.2.2. Run a standalone Docker container](#522-run-a-standalone-docker-container)
     - [5.2.3. Run as a companion container to Nginx Proxy Manager](#523-run-as-a-companion-container-to-nginx-proxy-manager)
-- [6. Configuring the validator](#6-configuring-the-validator)
-  - [6.1. Environment variables](#61-environment-variables)
-- [7. How to integrate with Nginx](#7-how-to-integrate-with-nginx)
-  - [7.1. Nginx proxy host configuration](#71-nginx-proxy-host-configuration)
-  - [7.2. Validation URLs](#72-validation-urls)
-  - [7.3. Timeout headers](#73-timeout-headers)
-  - [7.4. Condition headers](#74-condition-headers)
+- [6. How to integrate with Nginx](#6-how-to-integrate-with-nginx)
+  - [6.1. Nginx proxy host configuration](#61-nginx-proxy-host-configuration)
+  - [6.2. Validator URLs](#62-validator-urls)
+- [7. Configuring the validator](#7-configuring-the-validator)
+  - [7.1. Environment variables](#71-environment-variables)
+  - [7.2. Timeout headers](#72-timeout-headers)
+  - [7.3. Condition headers](#73-condition-headers)
 - [8. Validation logic](#8-validation-logic)
 - [9. Credits](#9-credits)
 <!-- /TOC -->
@@ -70,7 +70,7 @@ In case you're still foolish enough to use this:
 ### 1.4. What to do if you suspect trouble
 
 * **Stop __*nginx-ip-whitelister*__** (kill the app or the docker container). Nginx will refuse requests if it cannot reach the validating backend.
-* If you're unable to stop the app, you can **use `/?LOGOUT` as a key** (case-insensitive) and it will de-list your current IP.
+* You can **use `/?LOGOUT` as a key** (case-insensitive) and it will de-list your current IP (but only your current IP).
 * **Change the keys** before you start the app/container back up again.
 * **Check the logs** to see what went wrong.
 
@@ -78,18 +78,18 @@ In case you're still foolish enough to use this:
 
 In order to use __*nginx-ip-whitelister*__ you must have already accomplished the things below:
 
-* The host that runs Emby/Jellyfin has a public IP (your ISP allocates one for your home router, or you're using a VPS etc.)
+* The host that runs Emby/Jellyfin has a public IP (your ISP allocates one for you, or you're using a VPS etc.)
 * You have a \[sub]domain A record pointing at that public IP (and you use DDNS to keep it in sync if it's dynamic etc.)
 * You forward a port in your firewall to an Nginx install acting as reverse proxy in front of Emby/Jellyfin.
-* **Nginx was compiled with the [`ngx_http_auth_request_module`](https://nginx.org/en/docs/http/ngx_http_auth_request_module.html).**
-* You have configured SSL for your domain (**highly recommended**), so that all connections to Emby/Jellyfin are encrypted.
+* Nginx was compiled with the [`ngx_http_auth_request_module`](https://nginx.org/en/docs/http/ngx_http_auth_request_module.html). Run `nginx -V` and check the output to see if the module is present.
+* You have configured TLS for your domain, so that all connections to Emby/Jellyfin are encrypted. This is crucial; again, if you don't do this then the whole setup is worthless.
 * Bottom line, if you connect to `https://your.domain[:PORT]/` you can see and use your Emby/Jellyfin.
 
 > It is beyond the scope of this documentation to explain how to achieve all this. For what it's worth I recommend using [Nginx Proxy Manager](https://github.com/NginxProxyManager/nginx-proxy-manager/) because it makes some of the things above a lot easier.
 
 ## 3. How do I use it?
 
-By default your Emby/Jellyfin install will show 403 errors to any visitor. 
+After completing the requirements and activating the whitelister in the proxy config, your Emby/Jellyfin install should show 403 errors to any visitor when accessed through the reverse proxy.
 
 To make it work you need to use a link like this:
 
@@ -97,21 +97,21 @@ To make it work you need to use a link like this:
 
 This will record your current IP and allow it normal access for a period of time. If you're using someone's WiFi all the devices using it will have access too, meaning you can cast to local media devices, TVs etc.
 
-If you want to disallow the IP use "LOGOUT" as a key:
+If you want to stop allowing your IP before the timeout runs out use "LOGOUT" as a key:
 
 `https://your.domain[:PORT]/?LOGOUT`
 
 You can use the proxy host configuration to pass additional configuration options to the validator as HTTP headers. It's a good idea to configure different keys for different people, at the very least. Please read the configuration section to find out more.
 
-## 4. How does it work?
+## 4. How does it work under the hood?
 
 The link goes to the Nginx reverse proxy, where it runs against the Nginx proxy configuration for `your.domain`.
 
-You add a configuration snippet to that host that will cause all requests to be validated against a 3rd party URL.
+You add the auth_request directive to the proxy configuration to cause requests to be validated against a 3rd party URL.
 
-That 3rd party URL belongs to the __*nginx-ip-whitelister*__ – which needs to be running at an address that the Nginx host can access, naturally.
+That 3rd party URL belongs to the __*nginx-ip-whitelister*__ – which needs to be running at an address that the Nginx host can access.
 
-Whenever __*nginx-ip-whitelister*__ sees a valid access key in a request URL it adds the visitor's IP address to a whitelist. Once that happens, all the following requests from the IP (which usually means everybody and everything in their LAN) will be allowed through.
+Whenever __*nginx-ip-whitelister*__ sees a valid access key in a request URL it adds the visitor's IP address to a whitelist. Once that happens, all requests from the IP (which usually means everybody and everything in their LAN) will be allowed through.
 
 You can optionally configure more conditions for the visitors such as IP netmasks, GeoIP, TOTP codes etc. 
 
@@ -127,6 +127,8 @@ $ node index.js
 ```
 
 You may want to use a tool like `supervisor` or `nodemon` that will restart the whitelister if it fails.
+
+It's also a good idea to redirect output to a log file that you can examine later if something goes wrong.
 
 ### 5.2. Running with Docker
 
@@ -182,25 +184,15 @@ If you intend to run both Nginx Proxy Manager and **_nginx-ip-whitelister_** as 
 
 See the `docker-compose-proxy-manager.yaml` file for an example that combines both service definitions into a single file.
 
-## 6. Configuring the validator
+## 6. How to integrate with Nginx
 
-### 6.1. Environment variables
-
-The following variables need to be available in the app environment to work. You can defined them in an `.env` file placed near `index.js` if you're running a standalone app, or provide them in the compose configuration, or as docker command line parameters etc.
-
-* `PORT`: defines the port that the validator listens on. *Defaults to `3000`.*
-* `HOST`: defines the interface that the validator listens on. *Defaults to `0.0.0.0`.*
-* `DEBUG`: if set to `yes` it will log every request to the standard output. By default it will only log the startup messages.
-
-## 7. How to integrate with Nginx
-
-### 7.1. Nginx proxy host configuration
+### 6.1. Nginx proxy host configuration
 
 In order to tell Nginx to use __*nginx-ip-whitelister*__ you need to use the `auth_request` directive to validate requests against the correct verification URL, and pass to it the original URI and the remote IP address.
 
-> In order to be able to use `auth_request`, Nginx needs to include the [`ngx_http_auth_request_module`](https://nginx.org/en/docs/http/ngx_http_auth_request_module.html).
+> In order to be able to use `auth_request`, Nginx needs to include the [`ngx_http_auth_request_module`](https://nginx.org/en/docs/http/ngx_http_auth_request_module.html). Check the output of `nginx -V` for the module name.
 
-The `auth_request` directive can be used in the `http`, `server` or `location` contexts. Please see the example below.
+The `auth_request` directive is pretty flexible and can be used in `http`, `server` or `location` contexts.
 
 If you're using Nginx Proxy Manager, edit the proxy host that you're using for Emby/Jellyfin and add this example configuration in the "Advanced" tab.
 
@@ -218,39 +210,51 @@ location = /__auth {
 
 If you're running the app standalone or in a non-networked container please replace `nginx-iw` with the appropriate hostname or IP address.
 
-### 7.2. Validator URLs
+### 6.2. Validator URLs
 
 Use `/verify` from the proxy host config to call the conditional validator. You can also use `/approve` to always pass the check, and `/reject` to always fail the check (for integration tests).
 
-Use `/status` directly to see a dump of the current whitelist, with links to `/delete?IP` that allow you to kick out individual addresses.
+Use `/status` directly to see a dump of the current whitelist state. It provides links to `/delete` that allow you to kick out individual addresses.
 
-⚠️ None of these endpoints are secured so do not expose them on the Internet. Ideally they should only be exposed on the internal Docker network between the Nginx Proxy Manager container and the validator container; or, if using NPM and the validator as standalone apps, on the localhost interface.
+⚠️ None of these endpoints are secured so do not expose them on the Internet without adding a proper authentication layer. Ideally they should only be exposed on the internal Docker network between the Nginx Proxy Manager container and the validator container; or, if using Proxy Manager and the validator as standalone apps, on the localhost interface.
 
-If you'd like to access `/status` and `/delete` from elsewhere, map the validator host as a proxy host.
+If running inside a Docker container and you'd like to access `/status` and `/delete` from outside you can either map the port to the host or map the validator itself to a reverse proxy host.
 
-### 7.3. Timeout headers
+If you make it accessible from the Internet you will still need to add some form of authentication (basic authentication, IAM provider, VPN, SSH etc.) You *can* use the validator to whitelist access to its own `/status` and `/delete` but be warned it will suffer from all the shortcomings described in the security section.
+
+## 7. Configuring the validator
+
+### 7.1. Environment variables
+
+The following variables can be added to the app environment. You can defined them in an `.env` file placed near `index.js` if you're running a standalone app, or provide them in the compose configuration, or as docker command line parameters etc.
+
+* `PORT`: defines the port that the validator listens on. *Defaults to `3000`.*
+* `HOST`: defines the interface that the validator listens on. *Defaults to `0.0.0.0`.*
+* `DEBUG`: if set to `yes` it will log every request to the standard output. By default it will only log the startup messages.
+
+### 7.2. Timeout headers
 
 The following headers can optionally be passed to the validator from Nginx to adjust the timeout policy for the whitelist.
 
 The header names are case insensitive. You can only use these headers once each – additional uses will be ignored.
 
-> The timeout policy is always enforced, whether you use these headers or not. Using them allows you to adjust the timeouts – see the defaults below.
+The timeouts are **always** enforced, whether you use these headers or not. Using the headers merely allows you to adjust the intervals.
 
-* `x-nipw-fixed-timeout`: A strictly positive integer, followed by the suffix `d`, `h`, `m` or `s` to indicate an amount of days, hours, minutes or seconds, respectively. The fixed timeout is compared against the moment when an IP was first added to the whitelist and it does not change. In other words, if you set a fixed timeout of `6h`, the IP will be de-listed 6 hours later, period. If you don't provide this header, *the fixed timeout defaults to 2 hours*.
-* `x-nipw-sliding-timeout`: Same format as the fixed timeout. The sliding timeout is compared against the most recent access from that IP, and if successful the last access is reset to now. In other words, if you set a sliding timeout of '30m', the IP will not be de-listed unless there's no access for 30 straight minutes. If you don't provide this header, *the sliding timeout defaults to 5 minutes*.
+* `x-nipw-fixed-timeout`: A strictly positive integer, followed by the suffix `d`, `h`, `m` or `s` to indicate an amount of days, hours, minutes or seconds, respectively. The fixed timeout is compared against the moment when an IP was first added to the whitelist and it does not change. In other words, if you set a fixed timeout of `6h`, the IP will be de-listed 6 hours later, period. If you don't provide this header *the fixed timeout defaults to 2 hours*.
+* `x-nipw-sliding-timeout`: Same format as the fixed timeout. The sliding timeout is compared against the most recent access from that IP, and if successful the last access is reset to now. In other words, if you set a sliding timeout of '30m', the IP will not be de-listed unless there's no access for 30 straight minutes. If you don't provide this header *the sliding timeout defaults to 5 minutes*.
 
 > Both timeout policies are enforced in parallel – each IP has a fixed time window from when it started *as well as* a condition to not be inactive for too long.
 
-### 7.4. Condition headers
+### 7.3. Condition headers
 
 The following headers can optionally be passed to the validator from Nginx to impose additional condition upon the requests.
 
 The header names are case insensitive. Most of these headers can be used multiple times (exceptions are noted below).
 
-> Please don't use commas or semicolons inside header values, they sometimes cause header libraries to split the value into separate ones.
+> Please don't use commas or semicolons inside header values, they can sometimes cause header libraries to split the value into separate ones.
 
-* `x-nipw-key`: Define additional authentication keys that will only apply to this proxy host.
-* `x-nipw-key-isolation`: Value can be *"enabled" (default)* or "disabled" (case-insensitive). This header is only processed once. When key isolation is enabled it prevents keys from being used by multiple IPs at the same time; once an IP has been whitelisted the key it used can't be used again until the IP expires.
+* `x-nipw-key`: Define an authentication key.
+* `x-nipw-key-isolation`: Value can be *"enabled" (default)* or "disabled" (case-insensitive). This header is only processed once (duplicates are ignored). When key isolation is enabled it prevents keys from being used by multiple IPs at the same time; once an IP has been whitelisted the key it used can't be used again until the IP exits the whitelist.
 * `x-nipw-netmask-allow`: Define one or more IP network masks to allow. An IP that doesn't match any of these masks will be rejected.
 * `x-nipw-netmask-deny`: Define one or more IP network masks to deny. An IP that matches any of these masks will be rejected. These headers will be ignored if any `-netmask-allow` headers are defined.
 * `x-nipw-geoip-allow`: Define one or more two-letter ISO-3166-1 country codes to allow. An IP that doesn't match any of these countries will be rejected. Private IPs always pass this check.
@@ -278,4 +282,4 @@ The logic works in the following order:
 
 ## 9. Credits
 
-This project uses [IP Geolocation by DB-IP](https://db-ip.com).
+This project uses [IP Geolocation by DB-IP](https://db-ip.com). Please note that the `dbip-country-lite.mmdb` file is licensed under [Creative Commons Attribution 4.0 International](http://creativecommons.org/licenses/by/4.0/).
