@@ -50,7 +50,9 @@ __*nginx-ip-whitelister*__ was designed to be a security improvement over leavin
 
 **There are better methods**. If you've arrived to this page because you want to secure your server you probably don't want this. Consider using a VPN like OpenVPN/WireGuard/Tailscale, or an SSH tunnel, or an IAM provider like Authelia/Authentik.
 
-This project solves a very specific problem: the fact you can't easily share the VPN/SSH/IAM access from your phone to other devices, for example if you want to cast to someone's smart TV, Chromecast or Apple TV while visiting and using their WiFi.
+You may also be interested in [vouch-proxy](https://github.com/vouch/vouch-proxy) which works via auth_request just like this project but performs SSO instead against a wide variety of providers.
+
+__*nginx-ip-whitelister*__ solves a very specific problem: the fact you can't easily share the VPN/SSH/IAM access from your phone to other devices, for example if you want to cast to someone's smart TV, Chromecast or Apple TV while visiting and using their WiFi.
 
 ...but it solves it in a rather carefree manner, by granting access to whatever public IP you may be using at the time. There are many ways in which this can and **will** backfire if you don't know what you're doing.
 
