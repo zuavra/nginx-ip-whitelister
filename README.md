@@ -48,13 +48,15 @@ In such situations you MUST use a secure tunnel (VPN/SSH) or an IAM provider tha
 
 __*nginx-ip-whitelister*__ was designed to be a security improvement over leaving your Emby/Jellyfin completely open to the whole Internet. That's not a very high bar.
 
-**There are better methods**. If you've arrived to this page because you want to secure your server you probably don't want this. Consider using a VPN like OpenVPN/WireGuard/Tailscale, or an SSH tunnel, or an IAM provider like Authelia/Authentik.
+**There are better methods**. If you've arrived to this page because you want to secure your server please read through the following comparisons first:
 
-You may also be interested in [vouch-proxy](https://github.com/vouch/vouch-proxy) which works via auth_request just like this project but performs SSO instead against a wide variety of providers.
+* Use a VPN like OpenVPN/WireGuard/Tailscale or an SSH tunnel on an individual PC, laptop, phone or tablet. VPN/SSH lets you access Emby/Jellyfin in your browser or from the Emby/Jellyfin apps. Pro: the security is excellent and you can safely use it anywhere, even at public venues or at a hotel. Con: can't share access so you can't cast to media devices (TV, Chromecast etc.)
+* Use an IAM provider like Authelia/Authentik or [vouch-proxy](https://github.com/vouch/vouch-proxy). They use cookies and can be used in a browser. Pro: also excellent security and can be used in public venues. Con: can't cast to media devices and also can't use dedicated Emby/Jellyfin apps.
+* Set up a VPN/SSH tunnel client on your relative/friend's router. Pro: very secure, lets people use any browser or app, and all devices on their LAN can connect so you can cast to media devices. Con: not portable, and the router needs to be a prosumer model to support VPN/SSH.
+* Set up a VPN/SSH tunnel client on your phone and activate WiFi hotspot on the phone. Pro: very secure, can be used in public venues or at hotels; any device that connects to your hotspot can access Emby/Jellyfin from browsers or apps; you can cast, too. Con: devices need to connect to your hotspot; you will consume from your cellular data plan; probably your battery too.
+* nginx-ip-whitelister: Pro: you can use it from browser or apps; it lets you cast to media devices. Con: not very secure; cannot be used from public venues, hotels etc.
 
-__*nginx-ip-whitelister*__ solves a very specific problem: the fact you can't easily share the VPN/SSH/IAM access from your phone to other devices, for example if you want to cast to someone's smart TV, Chromecast or Apple TV while visiting and using their WiFi.
-
-...but it solves it in a rather carefree manner, by granting access to whatever public IP you may be using at the time. There are many ways in which this can and **will** backfire if you don't know what you're doing.
+It's true that __*nginx-ip-whitelister*__ solves some niche problems, like allowing you to use Emby/Jellyfin apps (which can't do cookies and SSO) or letting you cast to LAN devices like smart TVs or Chromecast (which can't do SSO and can't use VPN/SSH tunnels). But, still, granting access to whatever public IP you may be using at the time can and **will** backfire if you don't know what you're doing.
 
 ### 1.3. How do I mitigate the security risk?
 
