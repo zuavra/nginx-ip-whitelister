@@ -15,6 +15,6 @@ export default (_, res) => {
     res.local.logger.flush(`Deleted IP ${ip} from ${name ? `whitelist "${name}"` : `default whitelist`}.`);
 
     res.statusCode = 303;
-    res.setHeader('Location', '/status');
+    res.setHeader('Location', '/admin/whitelist');
     res.end();
 };

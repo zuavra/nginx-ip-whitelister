@@ -20,11 +20,11 @@ export default
             res.write(`<td>${lastModifiedAt.toLocaleString('sv-SE')}`);
             res.write('<td>' + humanInterval(entry.lastModifiedAt + entry.slidingTimeout - now));
 
-            res.write(`<td><a href="/delete?ip=${encodeURI(ip)}&whitelist=${encodeURI(name)}" title="kick out this IP">[delete]</a>`);
+            res.write(`<td><a onclick="return confirm('Are you sure you want to kick this IP?')" href="/admin/delete?ip=${encodeURI(ip)}&whitelist=${encodeURI(name)}" title="kick out this IP">[delete]</a>`);
         }
         res.write('</table>');
     }
 
-    res.local.logger.flush('Viewed status.');
+    res.local.logger.flush('Viewed whitelist status.');
     res.end();
 };
