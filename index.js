@@ -36,6 +36,11 @@ const buffer = fs.readFileSync('./dbip-country-lite.mmdb');
 const geoIP = factories.mmdbReaderFactory(buffer);
 globalLogger.flush('Loaded GeoIP database.');
 
+const htmlResources = {
+    css: fs.readFileSync('./resources/style.css'),
+    js: fs.readFileSync('./resources/script.js'),
+};
+
 app.use(null, (req, res) => {
     res.local.logger = factories.loggerFactory(process.env.DEBUG, factories.dateFactory, timeLib.logTimestamp);
 
@@ -74,7 +79,8 @@ app.use('/verify',
 app.use(null, (req, res) => {
     res.local.logger.addPrefix('R:' + req.connection.remoteAddress);
 });
-app.use('/admin/whitelist', mAdmin_whitelist(factories.dateFactory, geoIP, timeLib.humanInterval));
+app.use('/admin/whitelist',
+    mAdmin_whitelist(factories.dateFactory, geoIP, timeLib.humanInterval, timeLib.logTimestamp, htmlResources));
 app.use('/admin/delete', mAdmin_delete);
 
 app.use(null,
