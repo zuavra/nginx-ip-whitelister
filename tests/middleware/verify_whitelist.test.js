@@ -15,7 +15,7 @@ beforeEach(() => {
     res = {
         local: {
             remoteIP: REMOTE_IP,
-            store: {
+            whitelist: {
                 set: jest.fn(),
             },
             logger: {
@@ -29,7 +29,7 @@ beforeEach(() => {
 });
 
 test('middleware sets whitelist entry', () => {
-    expect(res.local.store.set).toHaveBeenCalledWith(
+    expect(res.local.whitelist.set).toHaveBeenCalledWith(
         REMOTE_IP,
         {createdAt: NOW, lastModifiedAt: NOW},
     );

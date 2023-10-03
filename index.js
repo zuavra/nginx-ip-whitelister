@@ -9,65 +9,76 @@ process.on('uncaughtException', e => {
 import dotenv from 'dotenv';
 import fs from 'node:fs';
 import { createTOTP } from "totp-auth";
-import { parseInterval, humanInterval } from "./lib/time.js";
+import * as timeLib from "./lib/time.js";
 import isPrivateIP from './lib/private_ip.js';
 import factories from './lib/factories.js';
 
 dotenv.config();
 const server = factories.httpFactory();
 const app = factories.appFactory(server, factories.urlFactory);
-const globalStore = factories.memStoreFactory();
-const globalLogger = factories.loggerFactory('yes', factories.dateFactory);
+const whitelistStore = factories.mapFactory();
+const globalLogger = factories.loggerFactory('yes', factories.dateFactory, timeLib.logTimestamp);
 
-import M_validate_geoip from './middleware/validate_geoip.js';
-import M_setup_local from './middleware/setup_local.js';
-import M_setup_logger from './middleware/setup_logger.js';
-import M_validate_netmasks from './middleware/validate_netmasks.js';
-import M_validate_ip from './middleware/validate_ip.js';
-import M_extract_proxy_values from './middleware/extract_proxy_values.js';
-import M_validate_keys from './middleware/validate_keys.js';
-import M_accept_ip from './middleware/accept_ip.js';
-import M_validate_totp from './middleware/validate_totp.js';
-import M_logout from './middleware/logout.js';
-import M_status from './middleware/status.js';
-import M_delete from './middleware/delete.js';
+import mVerify_selectWhitelist from './middleware/verify_select_whitelist.js';
+import mVerify_netmasks from './middleware/verify_netmasks.js';
+import mVerify_checkWhitelist from './middleware/verify_check_whitelist.js';
+import mVerify_getProxyConfig from './middleware/verify_get_proxy_config.js';
+import mVerify_key from './middleware/verify_key.js';
+import mVerify_geoip from './middleware/verify_geoip.js';
+import mVerify_approve from './middleware/verify_approve.js';
+import mVerify_totp from './middleware/verify_totp.js';
+import mVerify_logout from './middleware/verify_logout.js';
+import mAdmin_whitelist from './middleware/admin_whitelist.js';
+import mAdmin_delete from './middleware/admin_delete.js';
 globalLogger.flush('Loaded all middleware.');
 
 const buffer = fs.readFileSync('./dbip-country-lite.mmdb');
 const geoIP = factories.mmdbReaderFactory(buffer);
 globalLogger.flush('Imported GeoIP database.');
 
-app.use(null,
-    M_setup_local(globalStore, process.env.DEBUG, factories.loggerFactory, factories.dateFactory),
-);
+app.use(null, (_, res) => {
+    res.local.logger = loggerFactory(debugLevel, dateFactory, timeLib.logTimestamp);
+});
 app.use('/approve', (_, res) => {
+    res.local.logger.flush('Explicit approve.');
     res.statusCode = 200;
     res.end('APPROVED');
 });
 app.use('/reject', (_, res) => {
+    res.local.logger.flush('Explicit reject.');
     res.statusCode = 403;
     res.end('REJECTED');
 });
-app.use('/status', M_status(factories.dateFactory, geoIP, humanInterval));
-app.use('/delete', M_delete);
-app.use('/verify',
-    // order of middlewares is crucial
-    M_extract_proxy_values(factories.urlFactory, parseInterval),
-    M_setup_logger,
-    M_validate_netmasks(factories.netmaskFactory),
-    M_validate_geoip(geoIP, isPrivateIP),
-    M_logout,
-    M_validate_ip(factories.dateFactory),
-    M_validate_keys,
-    M_validate_totp(createTOTP),
-    M_accept_ip(factories.dateFactory),
-    (_, res) => res.end(),
-);
-app.use(null, (error, _, res) => {
-    console.error('Server error:', error);
-    res.statusCode = 500;
-    res.end('FATAL ERROR');
+
+app.use(null, (_, res) => {
+    res.local.whitelistStore = whitelistStore;
 });
+app.use('/verify',
+    mVerify_selectWhitelist(whitelistStore, factories.mapFactory),
+    mVerify_getProxyConfig(factories.urlFactory, timeLib.parseInterval),
+    mVerify_netmasks(factories.netmaskFactory),
+    mVerify_geoip(geoIP, isPrivateIP),
+    mVerify_logout,
+    mVerify_checkWhitelist(factories.dateFactory),
+    mVerify_key,
+    mVerify_totp(createTOTP),
+    mVerify_approve(factories.dateFactory),
+);
+
+app.use(null, (req, res) => {
+    res.local.logger.addPrefix('R:' + req.connection.remoteAddress);
+});
+app.use('/admin/whitelist', mAdmin_whitelist(factories.dateFactory, geoIP, timeLib.humanInterval));
+app.use('/admin/delete', mAdmin_delete);
+
+app.use(null,
+    (_, res) => res.end(),
+    (error, _, res) => {
+        console.error('Server error:', error);
+        res.statusCode = 500;
+        res.end('FATAL ERROR');
+    },
+);
 globalLogger.flush('Loaded application.');
 
 const PORT = parseInt(process.env.PORT) || 3000;

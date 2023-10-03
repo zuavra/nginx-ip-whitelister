@@ -15,6 +15,7 @@ export default
 
         if (countryCode) {
             res.local.logger.addPrefix(countryCode);
+            res.local.ipCountryCode = countryCode;
 
             if (allow.length) {
                 if (allow.indexOf(countryCode) != -1) {

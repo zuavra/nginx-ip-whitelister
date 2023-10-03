@@ -3,10 +3,10 @@ export default (_, res) => {
         const locatedKey = res.local.accessKeys.indexOf(res.local.visitorKey);
         if (locatedKey !== -1) {
             if (res.local.keyIsolation) {
-                for (const [ip, entry] of res.local.store) {
+                for (const [ip, entry] of res.local.whitelist) {
                     if (res.local.visitorKey === entry.usedKey) {
                         res.statusCode = 403;
-                        res.local.logger.flush(`Key is being used by ${ip}. Rejected.`);
+                        res.local.logger.flush(`Key is being used by IP ${ip}. Rejected.`);
                         return res.end();
                     }
                 }
