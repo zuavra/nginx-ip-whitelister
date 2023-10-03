@@ -34,10 +34,16 @@ globalLogger.flush('Loaded all middleware.');
 
 const buffer = fs.readFileSync('./dbip-country-lite.mmdb');
 const geoIP = factories.mmdbReaderFactory(buffer);
-globalLogger.flush('Imported GeoIP database.');
+globalLogger.flush('Loaded GeoIP database.');
 
-app.use(null, (_, res) => {
-    res.local.logger = loggerFactory(debugLevel, dateFactory, timeLib.logTimestamp);
+app.use(null, (req, res) => {
+    res.local.logger = factories.loggerFactory(process.env.DEBUG, factories.dateFactory, timeLib.logTimestamp);
+
+    if ('GET' !== req.method) {
+        res.local.logger.flush(`Unsupported method "${req.method}" attempt.`);
+        res.statusCode = 405;
+        res.end('METHOD NOT ALLOWED');
+    }
 });
 app.use('/approve', (_, res) => {
     res.local.logger.flush('Explicit approve.');
