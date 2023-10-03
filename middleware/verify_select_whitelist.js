@@ -9,4 +9,5 @@ export default
     else {
         whitelistStore.set(storeName, res.local.whitelist = mapFactory());
     }
+    res.local.logger.addPrefix('W:' + storeName);
 };
