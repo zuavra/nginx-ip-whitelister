@@ -81,7 +81,7 @@ app.use(null, (req, res) => {
 });
 app.use('/admin/whitelist',
     mAdmin_whitelist(factories.dateFactory, geoIP, timeLib.humanInterval, timeLib.logTimestamp, htmlResources));
-app.use('/admin/delete', mAdmin_delete);
+app.use('/admin/delete', mAdmin_delete(factories.mapFactory));
 
 app.use(null,
     (_, res) => res.end(),

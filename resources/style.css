@@ -3,7 +3,7 @@ body {
 }
 
 * {
-    font-family: "Consolas", sans-serif;
+    font-family: "Consolas", "Monaco", "Andale Mono", "Source Code Pro", "Cambridge", "Liberation Mono", "Fira Mono", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Droid Sans Mono", monospace;
     font-size: 12px;
 }
 
@@ -52,13 +52,16 @@ th {
     color: #999;
     font-family: "San Jose";
 }
+td.you {
+    color: red;
+}
 
 table a {
     text-decoration: none;
     display: inline-block;
     border-radius: 5px;
     padding: 2px 5px;
-    box-shadow: 2px 2px 0 0 #ddd;
+    box-shadow: 2px 2px 0 0 #ccc;
 }
 
 table a.kill {
