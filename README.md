@@ -223,6 +223,8 @@ If you're running the app standalone or in a non-networked container please repl
 
 Use `/verify` from the proxy host config to call the conditional validator. You can add an alphanumeric parameter (e.g. `/verify?ServiceName123`) to make it use a specific named whitelist. If the parameter is not provided it will use the default whitelist. This allows you to use different whitelists for different services as you see fit.
 
+> The parameter that gives the whitelist name is case-sensitive! `Jellyfin` and `jellyfin` will go to different whitelists.
+
 You can also use `/approve` to always pass the check, and `/reject` to always fail the check (for integration tests).
 
 #### 6.2.2. Management endpoints
