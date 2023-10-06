@@ -84,7 +84,10 @@ app.use('/admin/whitelist',
 app.use('/admin/delete', mAdmin_delete(factories.mapFactory));
 
 app.use(null,
-    (_, res) => res.end(),
+    (_, res) => {
+        res.statusCode = 404;
+        res.end('NOT FOUND');
+    },
     (error, _, res) => {
         console.error('Server error:', error);
         res.statusCode = 500;
