@@ -26,6 +26,9 @@ This app is undergoing heavy development and is still being designed. Breaking c
 - [6. How to integrate with Nginx](#6-how-to-integrate-with-nginx)
   - [6.1. Nginx proxy host configuration](#61-nginx-proxy-host-configuration)
   - [6.2. Validator URLs](#62-validator-urls)
+    - [6.2.1. Validation endpoints](#621-validation-endpoints)
+    - [6.2.2. Management endpoints](#622-management-endpoints)
+    - [6.2.3. Security](#623-security)
 - [7. Configuring the validator](#7-configuring-the-validator)
   - [7.1. Environment variables](#71-environment-variables)
   - [7.2. Timeout headers](#72-timeout-headers)
@@ -216,15 +219,25 @@ If you're running the app standalone or in a non-networked container please repl
 
 ### 6.2. Validator URLs
 
-Use `/verify` from the proxy host config to call the conditional validator. You can also use `/approve` to always pass the check, and `/reject` to always fail the check (for integration tests).
+#### 6.2.1. Validation endpoints
 
-Use `/status` directly to see a dump of the current whitelist state. It provides links to `/delete` that allow you to kick out individual addresses.
+Use `/verify` from the proxy host config to call the conditional validator. You can add an alphanumeric parameter (e.g. `/verify?ServiceName123`) to make it use a specific named whitelist. If the parameter is not provided it will use the default whitelist. This allows you to use different whitelists for different services as you see fit.
 
-⚠️ None of these endpoints are secured so do not expose them on the Internet without adding a proper authentication layer. Ideally they should only be exposed on the internal Docker network between the Nginx Proxy Manager container and the validator container; or, if using Proxy Manager and the validator as standalone apps, on the localhost interface.
+You can also use `/approve` to always pass the check, and `/reject` to always fail the check (for integration tests).
 
-If running inside a Docker container and you'd like to access `/status` and `/delete` from outside you can either map the port to the host or map the validator itself to a reverse proxy host.
+#### 6.2.2. Management endpoints
 
-If you make it accessible from the Internet you will still need to add some form of authentication (basic authentication, IAM provider, VPN, SSH etc.) You *can* use the validator to whitelist access to its own `/status` and `/delete` but be warned it will suffer from all the shortcomings described in the security section.
+Use `/admin/whitelist` directly to see the current whitelist state. It provides links to `/admin/delete` that allow you to kick out individual addresses or wipe out a whitelist completely. Your own current IP is indicated in red if present.
+
+![Admin overview](https://github.com/zuavra/nginx-ip-whitelister/blob/master/admin_overview.png?raw=true)
+
+#### 6.2.3. Security
+
+None of these endpoints are secured by default so do not expose them on the Internet without adding some form of protection (reverse proxy with basic authentication, IAM provider, VPN, SSH etc.)
+
+If you wrap them behind reverse proxy you *can* use the validator to whitelist access to its own management endpoints but be warned it will suffer from all the shortcomings characteristic to IP whitelisting.
+
+Ideally, validation endpoints should only be exposed on the internal Docker network between the Nginx Proxy Manager container and the validator container; and management endpoints only on the LAN, or properly tunneled.
 
 ## 7. Configuring the validator
 
