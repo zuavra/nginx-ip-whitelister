@@ -3,7 +3,6 @@ export default
 (req, res) => {
     const allHeaders = req.headersDistinct || {};
     const getHeaders = headerName => Array.isArray(allHeaders[headerName]) ? allHeaders[headerName] : [];
-
     // extract and preserve essential proxy parameters
     res.local.originalURI = getHeaders('x-original-uri')[0] || '';
     res.local.remoteIP = getHeaders('x-forwarded-for')[0] || '';
@@ -22,4 +21,8 @@ export default
     const params = (url.search || '').match(/^\?([^:]+)(?::([^:]+))?/) || [];
     res.local.visitorKey = params[1] || '';
     res.local.visitorTOTP = params[2] || '';
+    // apply relevant values to logger
+    res.local.accessKeys.map(res.local.logger.addScrubString);
+    res.local.logger.addPrefix('P:' + res.local.remoteIP);
+    res.local.logger.addPrefix(res.local.originalURI, true);
 };
