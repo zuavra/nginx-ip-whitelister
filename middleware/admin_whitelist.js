@@ -6,6 +6,7 @@ export default
     const now = dateFactory();
 
     res.write('<head>');
+    res.write('<title>Whitelist overview</title>');
     res.write('<script type="text/javascript">');
     res.write(htmlResources.js);
     res.write('</script>');
