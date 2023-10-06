@@ -30,28 +30,22 @@ const setupTimer = (element) => {
     }, 1000);
 };
 
-addEventListener("DOMContentLoaded", () => {
-    const delLinks = document.getElementsByClassName("del");
-    Array.prototype.map.call(delLinks, linkElem => {
+const addConfirmations = (className, message) => {
+    const elements = document.getElementsByClassName(className);
+    Array.prototype.map.call(elements, linkElem => {
         linkElem.addEventListener('click', (event) => {
-            if (!confirm('Are you sure you want to delete this entry?')) {
+            if (!confirm(message)) {
                 event.preventDefault();
                 return false;
             }
             return true;
         }, {capture: true});
     });
+};
 
-    const killLinks = document.getElementsByClassName("kill");
-    Array.prototype.map.call(killLinks, linkElem => {
-        linkElem.addEventListener('click', (event) => {
-            if (!confirm('Are you sure you want to clear this entire whitelist?')) {
-                event.preventDefault();
-                return false;
-            }
-            return true;
-        }, {capture: true});
-    });
+addEventListener("DOMContentLoaded", () => {
+    addConfirmations("del", "Are you sure you want to delete this entry?");
+    addConfirmations("kill", "Are you sure you want to clear this entire whitelist?");
 
     const expCells = document.getElementsByClassName("expiration");
     Array.prototype.map.call(expCells, cell => setupTimer(cell));
