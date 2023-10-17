@@ -21,7 +21,7 @@ services:
     restart: always
 
   nging-iw:
-    image: zuavra/nginx-ip-whitelister:latest
+    image: ghcr.io/zuavra/nginx-ip-whitelister:latest
     container_name: nginx-iw
     depends_on:
       - nginx-pm
