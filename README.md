@@ -20,9 +20,10 @@ This app is undergoing heavy development and is still being designed. Breaking c
 - [5. How to run the whitelister](#5-how-to-run-the-whitelister)
   - [5.1. Running as a standalone app](#51-running-as-a-standalone-app)
   - [5.2. Running with Docker](#52-running-with-docker)
-    - [5.2.1. Build a Docker image](#521-build-a-docker-image)
-    - [5.2.2. Run a standalone Docker container](#522-run-a-standalone-docker-container)
-    - [5.2.3. Run as a companion container to Nginx Proxy Manager](#523-run-as-a-companion-container-to-nginx-proxy-manager)
+    - [5.2.1. Run a standalone Docker container](#521-run-a-standalone-docker-container)
+    - [5.2.2. Run a Docker container alongside a Nginx Proxy Manager container](#522-run-a-docker-container-alongside-a-nginx-proxy-manager-container)
+    - [5.2.3. Pull the pre-built Docker image](#523-pull-the-pre-built-docker-image)
+    - [5.2.4. Build a Docker image yourself](#524-build-a-docker-image-yourself)
 - [6. How to integrate with Nginx](#6-how-to-integrate-with-nginx)
   - [6.1. Nginx proxy host configuration](#61-nginx-proxy-host-configuration)
   - [6.2. Validator URLs](#62-validator-urls)
@@ -149,9 +150,40 @@ It's also a good idea to redirect output to a log file that you can examine late
 
 ### 5.2. Running with Docker
 
-#### 5.2.1. Build a Docker image
+#### 5.2.1. Run a standalone Docker container
 
-You can use the `Dockerfile` and `.dockerignore` included in the package and run the following command from the project root:
+You can run this app as a Docker container that listens on the host's network interface. Use this if your Nginx or Nginx Proxy Manager are able to communicate directly with the host network.
+
+Download the `docker-compose-standalone.yaml` file then run `docker-compose up -d` from the same directory.
+
+#### 5.2.2. Run a Docker container alongside a Nginx Proxy Manager container
+
+If you intend to run both Nginx Proxy Manager and **_nginx-ip-whitelister_** as Docker containers you need to define a Docker network between them so the proxy will be able to reach the validator.
+
+The file `docker-compose-proxy-manager.yaml` contains an example configuration that will deploy both NPM and this app in separate containers, but allow them to communicate through a Docker network.
+
+You will need to create the Docker network:  
+`docker network create nginx-network`
+
+Then run `docker-compose up -d` from the same directory where you've downloaded the `.yaml` file.
+
+#### 5.2.3. Pull the pre-built Docker image
+
+You can find pre-built Docker images for this project on the GitHub Container Repository:  
+https://github.com/users/zuavra/packages/container/package/nginx-ip-whitelister
+
+The example `.yaml` files provided with the source code already refer to the pre-built image, for your convenience.
+
+However, you can also pull the ready-made image manually, to use in Docker configurations you've written yourself, or as a layer for other Docker images, or simply when you wish to update to the latest version of the app.
+
+To do that, run:  
+`docker pull ghcr.io/zuavra/nginx-ip-whitelister:latest`
+
+> After pulling the latest image please remember that you also have to stop, remove, and then remake any Docker containers based on it.
+
+#### 5.2.4. Build a Docker image yourself
+
+If you'd like to build a local Docker image yourself, for example if you've modified the source code, you can use the `Dockerfile` and `.dockerignore` included in the package and run the following command from the project root:
 
 ```
 $ docker build --tag zuavra/nginx-ip-whitelister .
@@ -159,47 +191,9 @@ $ docker build --tag zuavra/nginx-ip-whitelister .
 
 Yes, there's a dot at the end of the command.
 
-This will build the image and publish it to your machine's local image repository, where it's now ready for being used by Docker containers:
+This will build the image and publish it to your machine's local image repository, where it's now ready for being used by Docker containers.
 
-#### 5.2.2. Run a standalone Docker container
-
-You can run a Docker container that listens on the host's network interface. Use this if your Nginx or Nginx Proxy Manager are able to communicate directly with the host network.
-
-See the `docker-compose-standalone.yaml` file for an example.
-
-You can of course also rely on `.env` if you place this in the same dir, omit the `environment:` section, and define the port as `- "${PORT}:${PORT}/tcp"`.
-
-#### 5.2.3. Run as a companion container to Nginx Proxy Manager
-
-If you intend to run both Nginx Proxy Manager and **_nginx-ip-whitelister_** as Docker containers you need to define a Docker network between them so the proxy will be able to reach the validator.
-
-* Create the Docker network:
-  ```
-  # docker network create nginx-network
-  ```
-* Tell each container to use the network by adding it to their `docker-compose.yaml` service definition:
-  ```
-  networks:
-    - nginx-network
-  ```
-* Give the validator its own hostname, so it's easier to refer to it from the proxy config:
-  ```
-  hostname: nginx-iw
-  ```
-* Add the network definition *outside* the service definition:
-  ```
-  networks:
-    nginx-network:
-      external:
-        name: nginx-network
-  ```
-* It's also a very good idea to make the __*nginx-ip-whitelister*__ container depend on the Nginx / Nginx Proxy Manager container:
-  ```
-  depends_on:
-    - name-of-nginx-container
-  ```
-
-See the `docker-compose-proxy-manager.yaml` file for an example that combines both service definitions into a single file.
+> Please remember to change your `.yaml` files or `docker run` commands to use the name of the local image (`zuavra/nginx-ip-whitelister:latest`) rather than the GHCR pre-built image (`ghcr.io/zuavra/nginx-ip-whitelister:latest`). You will also have to stop,remove and remake containers in order to use the new image.
 
 ## 6. How to integrate with Nginx
 
