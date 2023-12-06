@@ -2,6 +2,7 @@
 node_modules
 *.yaml
 *~
+*.sh
 .env.example
 .git
 .gitignore
