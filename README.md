@@ -6,8 +6,6 @@ It validates proxy requests against a list of IP addresses. In order for an IP t
 
 This app was designed to be particularly easy to integrate with [Nginx Proxy Manager](https://github.com/NginxProxyManager/nginx-proxy-manager/) running in Docker.
 
-This app is undergoing heavy development and is still being designed. Breaking changes are made frequently. Use at your own risk.
-
 <!-- TOC -->
 - [1. Security warning](#1-security-warning)
   - [1.1. Don't use this](#11-dont-use-this)
