@@ -7,8 +7,6 @@ services:
     environment:
       - PORT=3000
       - HOST=0.0.0.0
-      - FIXED_TIMEOUT=10800000
-      - KEY=CHANGE-ME
       - DEBUG=yes
     ports:
         - "3000:3000/tcp"
