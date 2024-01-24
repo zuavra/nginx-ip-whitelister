@@ -24,7 +24,7 @@
   "author": "zuavra.net",
   "license": "MIT",
   "dependencies": {
-    "dotenv": "=16.3.2",
+    "dotenv": "=16.4.0",
     "jssha": "=3.3.1",
     "mmdb-lib": "=2.1.0",
     "netmask": "=2.0.2",
