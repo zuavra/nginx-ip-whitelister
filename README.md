@@ -24,6 +24,8 @@ This app was designed to be particularly easy to integrate with [Nginx Proxy Man
     - [5.2.4. Build a Docker image yourself](#524-build-a-docker-image-yourself)
 - [6. How to integrate with Nginx](#6-how-to-integrate-with-nginx)
   - [6.1. Nginx proxy host configuration](#61-nginx-proxy-host-configuration)
+    - [6.1.1. Simple configuration example](#611-simple-configuration-example)
+    - [6.1.2. Advanced configuration example](#612-advanced-configuration-example)
   - [6.2. Validator URLs](#62-validator-urls)
     - [6.2.1. Validation endpoints](#621-validation-endpoints)
     - [6.2.2. Management endpoints](#622-management-endpoints)
@@ -205,29 +207,64 @@ The `auth_request` directive is pretty flexible and can be used in `http`, `serv
 
 If you're using Nginx Proxy Manager, edit the proxy host that you're using for Emby/Jellyfin and add this example configuration in the "Advanced" tab.
 
+#### 6.1.1. Simple configuration example
+
+This is a very basic example that only blocks requests without the correct key.
+
 ```
 auth_request /__auth;
 location = /__auth {
 	internal;
-	proxy_pass http://nginx-iw:3000/verify;
 	proxy_pass_request_body off;
 	proxy_set_header Content-Length "";
 	proxy_set_header X-Original-URI $request_uri;
 	proxy_set_header X-Forwarded-For $remote_addr;
+	proxy_pass http://nginx-iw:3000/verify;
+        proxy_set_header x-nipw-key "AVeryLongStringToBeUsedAsSecretKey";
 }
 ```
 
 If you're running the app standalone or in a non-networked container please replace `nginx-iw` with the appropriate hostname or IP address.
 
+#### 6.1.2. Advanced configuration example
+
+This is a more advanced example that shows you how to use some access headers to set up custom access conditions. These aren't all the possible headers, see the next section for a full list.
+
+```
+auth_request /__auth;
+location = /__auth {
+	# common proxy settings
+	internal;
+	proxy_pass_request_body off;
+	proxy_set_header Content-Length "";
+	proxy_set_header X-Original-URI $request_uri;
+	proxy_set_header X-Forwarded-For $remote_addr;
+
+	# the next line has a parameter that makes this proxy instance use
+	# a separate IP whitelist called "jellyfin" instead of the default whitelist
+	proxy_pass http://nginx-iw:3000/verify?jellyfin; 
+
+	# specific access settings; see the next section for all possible headers
+        proxy_set_header x-nipw-key-isolation "disabled";
+        proxy_set_header x-nipw-fixed-timeout "3h";
+        proxy_set_header x-nipw-sliding-timeout "30m";
+        proxy_set_header x-nipw-geoip-allow "DE";
+        proxy_set_header x-nipw-key "AVeryLongStringToBeUsedAsSecretKey";
+}
+
+```
+
 ### 6.2. Validator URLs
 
 #### 6.2.1. Validation endpoints
 
-Use `/verify` from the proxy host config to call the conditional validator. You can add an alphanumeric parameter (e.g. `/verify?ServiceName123`) to make it use a specific named whitelist. If the parameter is not provided it will use the default whitelist. This allows you to use different whitelists for different services as you see fit.
+Use `/verify` from the proxy host config to call the conditional validator. This validator endpoint is subject to the conditions that you have specified using `x-nipw-*` headers.
+
+You can add an alphanumeric parameter to it (e.g. `/verify?ServiceName123`) to make it use a specific named whitelist. If the parameter is not provided it will use the default whitelist. This allows you to use different whitelists for different services. Having separated whitelists allows you to quickly reset the access whitelist for only one service from the admin interface without affecting the other services.
 
 > The parameter that gives the whitelist name is case-sensitive! `Jellyfin` and `jellyfin` will go to different whitelists.
 
-You can also use `/approve` to always pass the check, and `/reject` to always fail the check (for integration tests).
+You can also use `/approve` to always unconditionally pass the check, and `/reject` to always unconditionally fail the check (for integration tests).
 
 #### 6.2.2. Management endpoints
 
