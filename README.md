@@ -66,7 +66,10 @@ __*nginx-ip-whitelister*__ was designed to be a security improvement over leavin
 4. Set up a VPN/SSH tunnel client on someone's phone and have them activate WiFi hotspot on the phone when they want to grant access to others. (If they don't want to share access then just see bullet 1, no need for hotspot.)
    * Pros: good security; can be used in public venues or at hotels; any device that connects to the hotspot can access Emby/Jellyfin from browsers or 3rd party apps, which means people can cast to media devices too.
    * Cons: more complicated for everybody involved; all devices need to connect to the hotspot to access Emby/Jellyfin; it will consume from the phone's cellular data plan; probably eats up the battery too.
-5. nginx-ip-whitelister:
+5. Use SSH to browse the files on your server remotely. Use a mobile player that can stream from SSH or a file explorer like Solid Explorer that has the ability to relay SSH files to any player app. Use an app like BubbleUPnP as the player app if you want to also cast to a LAN renderer.
+   * Pros: good security; can be used in public venues or at hotels; can cast to media devices.
+   * Cons: restricted to mobile phones and a specific combination of apps.
+6. nginx-ip-whitelister:
    * Pros: you can use it from browser or 3rd party apps; it lets you cast to media devices.
    * Cons: not as secure as the other options; MUST NOT be used from public venues, hotels etc.
 
