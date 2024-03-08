@@ -313,13 +313,13 @@ The header names are case insensitive. Most of these headers can be used multipl
 
 * `x-nipw-key`: Define an authentication key.
 * `x-nipw-key-isolation`: Value can be *"enabled" (default)* or "disabled" (case-insensitive). This header is only processed once (duplicates are ignored). When key isolation is enabled it prevents keys from being used by multiple IPs at the same time; once an IP has been whitelisted the key it used can't be used again until the IP exits the whitelist.
-* `x-nipw-netmask-allow`: Define one or more IP network masks to allow. An IP that doesn't match any of these masks will be rejected.
-* `x-nipw-netmask-deny`: Define one or more IP network masks to deny. An IP that matches any of these masks will be rejected. These headers will be ignored if any `-netmask-allow` headers are defined.
-* `x-nipw-geoip-allow`: Define one or more two-letter ISO-3166-1 country codes to allow. An IP that doesn't match any of these countries will be rejected. Private IPs always pass this check.
-* `x-nipw-geoip-deny`: Define one or more two-letter ISO-3166-1 country codes to deny. An IP that matches any of these countries will be rejected. Private IPs always pass this check. These headers will be ignored if any `-geoip-allow` header is defined.
-* `x-nipw-totp`: Define one or more TOTP secrets. If any `-totp` header is defined, the visitor will have to append a valid TOTP code matching one of the secrets to the URL key, separated by a colon: `/?ACCESS-KEY:TOTP-CODE`. If none of the secrets have been matched the request will be rejected.
+* `x-nipw-netmask-allow`: Define an IP network mask to allow. An IP that doesn't match any of the allow masks will be rejected.
+* `x-nipw-netmask-deny`: Define an IP network masks to deny. An IP that matches any of the deny masks will be rejected. These headers will be ignored if any `-netmask-allow` header is defined.
+* `x-nipw-geoip-allow`: Specify a two-letter ISO-3166-1 country code to allow. An IP that doesn't match any allow countries will be rejected. Private IPs always pass this check.
+* `x-nipw-geoip-deny`: Define a two-letter ISO-3166-1 country code to deny. An IP that matches any of the deny countries will be rejected. Private IPs always pass this check. These headers will be ignored if any `-geoip-allow` header is defined.
+* `x-nipw-totp`: Define a TOTP secret. If any `-totp` header is defined, the visitor will have to append a valid TOTP code matching one of the secrets to the URL key, separated by a colon: `/?ACCESS-KEY:TOTP-CODE`. If none of the secrets have been matched the request will be rejected.
 
-> Please understand that GeoIP matching is far from perfect. This project uses a "lite" GeoIP database which is not super-accurate, but even exhaustive databases can make mistakes. Accept the fact that occasionally you will end up blocking (or allowing) an IP that shouldn't be.
+> Please understand that GeoIP matching is far from perfect. This project uses a "lite" GeoIP database which is not super-accurate, but even the larger databases can make mistakes. Accept the fact that occasionally you will end up blocking (or allowing) an IP that shouldn't be.
 
 ## 8. Validation logic
 
