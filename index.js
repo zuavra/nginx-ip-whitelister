@@ -50,12 +50,12 @@ app.use(null, (req, res) => {
         res.end('METHOD NOT ALLOWED');
     }
 });
-app.use('/approve', (_, res) => {
+app.use(new RegExp("^/approve/?$"), (_, res) => {
     res.local.logger.flush('Explicit approve.');
     res.statusCode = 200;
     res.end('APPROVED');
 });
-app.use('/reject', (_, res) => {
+app.use(new RegExp("^/reject/?$"), (_, res) => {
     res.local.logger.flush('Explicit reject.');
     res.statusCode = 403;
     res.end('REJECTED');
@@ -64,7 +64,7 @@ app.use('/reject', (_, res) => {
 app.use(null, (_, res) => {
     res.local.whitelistStore = whitelistStore;
 });
-app.use('/verify',
+app.use(new RegExp("^/verify/?$"),
     mVerify_selectWhitelist(whitelistStore, factories.mapFactory),
     mVerify_getProxyConfig(factories.urlFactory, timeLib.parseInterval),
     mVerify_netmasks(factories.netmaskFactory),
@@ -79,9 +79,9 @@ app.use('/verify',
 app.use(null, (req, res) => {
     res.local.logger.addPrefix('R:' + req.connection.remoteAddress);
 });
-app.use('/admin/whitelist',
+app.use(new RegExp("^/admin/whitelist/?$"),
     mAdmin_whitelist(factories.dateFactory, geoIP, timeLib.humanInterval, timeLib.logTimestamp, htmlResources));
-app.use('/admin/delete', mAdmin_delete(factories.mapFactory));
+app.use(new RegExp("^/admin/delete/?$"), mAdmin_delete(factories.mapFactory));
 
 app.use(null,
     (_, res) => {
