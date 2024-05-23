@@ -14,8 +14,7 @@ import isPrivateIP from './lib/private_ip.js';
 import factories from './lib/factories.js';
 
 dotenv.config();
-const server = factories.httpFactory();
-const app = factories.appFactory(server, factories.urlFactory);
+const app = factories.appFactory();
 const whitelistStore = factories.mapFactory();
 const globalLogger = factories.loggerFactory('yes', factories.dateFactory, timeLib.logTimestamp);
 
