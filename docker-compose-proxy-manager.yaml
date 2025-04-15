@@ -20,7 +20,7 @@ services:
       - nginx-network
     restart: always
 
-  nging-iw:
+  nginx-iw:
     image: ghcr.io/zuavra/nginx-ip-whitelister:latest
     container_name: nginx-iw
     depends_on:
