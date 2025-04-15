@@ -161,14 +161,13 @@ Download the `docker-compose-standalone.yaml` file then run `docker-compose up -
 
 #### 5.2.2. Run a Docker container alongside a Nginx Proxy Manager container
 
-If you intend to run both Nginx Proxy Manager and **_nginx-ip-whitelister_** as Docker containers you need to define a Docker network between them so the proxy will be able to reach the validator.
+If you intend to run both Nginx Proxy Manager and **_nginx-ip-whitelister_** as Docker containers you need to allow them to access each other over the network, so the proxy will be able to reach the validator.
 
-The file `docker-compose-proxy-manager.yaml` contains an example configuration that will deploy both NPM and this app in separate containers, but allow them to communicate through a Docker network.
+There are multiple ways of achieving that:
 
-You will need to create the Docker network:  
-`docker network create nginx-network`
-
-Then run `docker-compose up -d` from the same directory where you've downloaded the `.yaml` file.
+1. The file `docker-compose-proxy-manager.yaml` contains an example configuration that will deploy both NPM and this app in separate containers, but allow them to communicate through a private Docker bridge network. You will need to create the Docker network: `docker network create nginx-network`. Then run `docker-compose up -d` from the same directory where you've downloaded the `.yaml` file, and configure NPM to access the validator at `http://nginx-iw:3000`.
+2. You can skip creating the common bridge network and remove the "networks:" section from the .yaml. This will cause the containers to expose their mapped ports on the host machine instead of privately. You can then configure NPM to access the validator at the host machine's IP and port 3000.
+3. You can use the directive "network: container:npm" for the validator service to make it run in the proxy container's network stack. This will allow the proxy to access the validator at IP 127.0.0.1. But you'll have to change the validator's port in both the "ports:" and "environment:" sections... because NPM's own backend is also using 3000. (Sorry about that. I only realised it after the project had been out for a while.)
 
 #### 5.2.3. Pull the pre-built Docker image
 
