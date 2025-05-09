@@ -18,11 +18,11 @@ export default
     res.local.slidingTimeout = parseInterval(getHeaders('x-nipw-sliding-timeout')[0] || '');
     // extract query string values in format ?key:totp
     const url = urlFactory(res.local.originalURI, 'http://ignore.this');
-    const params = (url.search || '').match(/^\?([^:]+)(?::([^:]+))?/) || [];
+    const params = (url.search || '').match(/^\?([^:]*)(?::([^:]+))?/) || [];
     res.local.visitorKey = params[1] || '';
     res.local.visitorTOTP = params[2] || '';
     // apply relevant values to logger
     res.local.accessKeys.map(res.local.logger.addScrubString);
-    res.local.logger.addPrefix('P:' + res.local.remoteIP);
+    res.local.logger.addPrefix('X:' + res.local.remoteIP);
     res.local.logger.addPrefix(res.local.originalURI, true);
 };
