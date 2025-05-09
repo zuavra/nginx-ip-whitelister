@@ -24,7 +24,7 @@ import mVerify_checkWhitelist from './middleware/verify_check_whitelist.js';
 import mVerify_getProxyConfig from './middleware/verify_get_proxy_config.js';
 import mVerify_key from './middleware/verify_key.js';
 import mVerify_geoip from './middleware/verify_geoip.js';
-import mVerify_approve from './middleware/verify_approve.js';
+import mVerify_addToWhitelist from './middleware/verify_add_whitelist.js';
 import mVerify_totp from './middleware/verify_totp.js';
 import mVerify_logout from './middleware/verify_logout.js';
 import mAdmin_whitelist from './middleware/admin_whitelist.js';

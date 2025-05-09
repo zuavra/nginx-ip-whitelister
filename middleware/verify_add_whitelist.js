@@ -8,8 +8,5 @@ export default
         usedKey: res.local.visitorKey,
         countryCode: res.local.ipCountryCode || '',
     });
-
-    res.statusCode = 200;
-    res.local.logger.flush('IP added. Allowed.');
-    res.end();
+    res.local.logger.flush('IP added.');
 };
