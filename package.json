@@ -32,6 +32,6 @@
     "totp-auth": "=1.0.11"
   },
   "devDependencies": {
-    "jest": "^29.7.0"
+    "jest": "^30.0.0"
   }
 }
