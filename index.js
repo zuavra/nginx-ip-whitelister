@@ -44,6 +44,14 @@ const htmlResources = {
     js: fs.readFileSync('./resources/script.js'),
 };
 
+const regexp = {
+    approve: new RegExp("^/approve/?$"),
+    reject: new RegExp("^/reject/?$"),
+    verify: new RegExp("^/verify/?$"),
+    adminList: new RegExp("^/admin/whitelist/?$"),
+    adminDelete: new RegExp("^/admin/delete/?$"),
+};
+
 app.use(null, (req, res) => {
     if (!res.local) res.local = {};
     res.local.URL = factories.urlFactory(req.url, 'http://ignore.this');
@@ -56,12 +64,12 @@ app.use(null, (req, res) => {
         res.end('METHOD NOT ALLOWED');
     }
 });
-app.use(new RegExp("^/approve/?$"), (_, res) => {
+app.use(regexp.approve, (_, res) => {
     res.local.logger.flush('Explicit approve.');
     res.statusCode = 200;
     res.end('APPROVED');
 });
-app.use(new RegExp("^/reject/?$"), (_, res) => {
+app.use(regexp.reject, (_, res) => {
     res.local.logger.flush('Explicit reject.');
     res.statusCode = 403;
     res.end('REJECTED');
@@ -70,8 +78,9 @@ app.use(new RegExp("^/reject/?$"), (_, res) => {
 app.use(null, (_, res) => {
     res.local.whitelistStore = whitelistStore;
 });
-app.use(new RegExp("^/verify/?$"),
-    mVerify_selectWhitelist(whitelistStore, factories.mapFactory),
+
+// only for verify
+app.use(regexp.verify,
     mVerify_getProxyConfig(factories.urlFactory, timeLib.parseInterval),
     mVerify_netmasks(factories.netmaskFactory),
     mVerify_geoip(geoIP, isPrivateIP),
@@ -85,9 +94,9 @@ app.use(new RegExp("^/verify/?$"),
 app.use(null, (req, res) => {
     res.local.logger.addPrefix('R:' + req.connection.remoteAddress);
 });
-app.use(new RegExp("^/admin/whitelist/?$"),
+app.use(regexp.adminList,
     mAdmin_whitelist(factories.dateFactory, geoIP, timeLib.humanInterval, timeLib.logTimestamp, htmlResources));
-app.use(new RegExp("^/admin/delete/?$"), mAdmin_delete(factories.mapFactory));
+app.use(regexp.adminDelete, mAdmin_delete(factories.mapFactory));
 
 app.use(null,
     (_, res) => {
