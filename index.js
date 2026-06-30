@@ -43,6 +43,7 @@ const htmlResources = {
     css: fs.readFileSync('./resources/style.css'),
     js: fs.readFileSync('./resources/script.js'),
 };
+globalLogger.flush('Loaded HTML resources.');
 
 const regexp = {
     approve: new RegExp("^/approve/?$"),
@@ -52,6 +53,7 @@ const regexp = {
     adminDelete: new RegExp("^/admin/delete/?$"),
 };
 
+// initial stuff common to all routes
 app.use(null, (req, res) => {
     if (!res.local) res.local = {};
     res.local.URL = factories.urlFactory(req.url, 'http://ignore.this');
@@ -64,6 +66,8 @@ app.use(null, (req, res) => {
         res.end('METHOD NOT ALLOWED');
     }
 });
+
+// explicit approve/reject routes, for reference/testing
 app.use(regexp.approve, (_, res) => {
     res.local.logger.flush('Explicit approve.');
     res.statusCode = 200;
@@ -75,6 +79,7 @@ app.use(regexp.reject, (_, res) => {
     res.end('REJECTED');
 });
 
+// list store is needed for both verify and admin routes
 app.use(null, (_, res) => {
     res.local.whitelistStore = whitelistStore;
 });
@@ -91,6 +96,7 @@ app.use(regexp.verify,
     mVerify_approve(factories.dateFactory),
 );
 
+// handle admin routes
 app.use(null, (req, res) => {
     res.local.logger.addPrefix('R:' + req.connection.remoteAddress);
 });
@@ -98,6 +104,7 @@ app.use(regexp.adminList,
     mAdmin_whitelist(factories.dateFactory, geoIP, timeLib.humanInterval, timeLib.logTimestamp, htmlResources));
 app.use(regexp.adminDelete, mAdmin_delete(factories.mapFactory));
 
+// fallback handlers for unknown routes any uncaught errors
 app.use(null,
     (_, res) => {
         res.statusCode = 404;
