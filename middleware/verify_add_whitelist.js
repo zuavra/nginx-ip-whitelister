@@ -8,5 +8,5 @@ export default
         usedKey: res.local.visitorKey,
         countryCode: res.local.ipCountryCode || '',
     });
-    res.local.logger.flush('IP added.');
+    res.local.logger.queue('IP added.');
 };
