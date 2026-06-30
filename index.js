@@ -18,6 +18,10 @@ const app = factories.appFactory();
 const whitelistStore = factories.mapFactory();
 const globalLogger = factories.loggerFactory('yes', factories.dateFactory, timeLib.logTimestamp);
 
+import PJSON from './package.json' with {type: 'json'};
+const VERSION = PJSON.version;
+globalLogger.flush(`App version ${VERSION} started.`);
+
 import mVerify_selectWhitelist from './middleware/verify_select_whitelist.js';
 import mVerify_netmasks from './middleware/verify_netmasks.js';
 import mVerify_checkWhitelist from './middleware/verify_check_whitelist.js';
