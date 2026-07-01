@@ -1,6 +1,10 @@
 export default
 (dateFactory) =>
 (_, res) => {
+    if (res.local.accessKeys.length === 0) {
+        return;
+    }
+
     const entry = res.local.whitelist.get(res.local.remoteIP);
     if (!entry) {
         res.local.logger.queue('IP not found.');

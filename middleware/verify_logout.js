@@ -1,4 +1,8 @@
 export default (_, res) => {
+    if (res.local.accessKeys.length === 0) {
+        return;
+    }
+
     if ('logout' === res.local.visitorKey.toLowerCase()) {
         res.local.logger.queue('Logout used.');
         const entry = res.local.whitelist.get(res.local.remoteIP);

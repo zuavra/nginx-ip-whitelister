@@ -1,6 +1,10 @@
 export default
 (whitelistStore, mapFactory) =>
 (_, res) => {
+    if (res.local.accessKeys.length === 0) {
+        return;
+    }
+
     const verifyParams = res.local.URL.search.substring(1).match(/^([a-zA-Z0-9]+)$/) || [];
     const storeName = res.local.storeName = verifyParams[1] || '';
     if (whitelistStore.has(storeName)) {
