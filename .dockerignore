@@ -3,8 +3,13 @@ node_modules
 *.yaml
 *~
 *.sh
+*.png
+*.txt
+.env
 .env.example
 .git
+.github
+.vscode
 .gitignore
 Dockerfile
 LICENSE

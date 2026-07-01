@@ -1,9 +1,9 @@
-# syntax=docker/dockerfile:1
-
-FROM alpine
-ENV NODE_ENV=production
-RUN apk add --update nodejs npm
-WORKDIR /opt/nginx-iw
+FROM node:26 AS build
+WORKDIR /opt/niw
 COPY . .
-RUN npm install --omit=dev
-CMD ["node", "index.js"]
+RUN npm ci --omit=dev
+
+FROM gcr.io/distroless/nodejs26-debian13
+COPY --from=build /opt/niw /opt/niw
+WORKDIR /opt/niw
+CMD ["index.js"]
