@@ -92,13 +92,22 @@ app.use(null, (_, res) => {
 // only for verify
 app.use(regexp.verify,
     mVerify_getProxyConfig(factories.urlFactory, timeLib.parseInterval),
+
     mVerify_netmasks(factories.netmaskFactory),
     mVerify_geoip(geoIP, isPrivateIP),
+    mVerify_totp(createTOTP),
+
+    mVerify_selectWhitelist(whitelistStore, factories.mapFactory),
     mVerify_logout,
     mVerify_checkWhitelist(factories.dateFactory),
     mVerify_key,
-    mVerify_totp(createTOTP),
-    mVerify_approve(factories.dateFactory),
+    mVerify_addToWhitelist(factories.dateFactory),
+
+    (_, res) => {
+        res.statusCode = 200;
+        res.local.logger.flush('Allowed.');
+        res.end();
+    },
 );
 
 // handle admin routes
