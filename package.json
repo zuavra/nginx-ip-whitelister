@@ -25,6 +25,7 @@
   "dependencies": {
     "crumbware": "=0.0.4",
     "dotenv": "=17.4.2",
+    "ip-regex": "=5.0.0",
     "jssha": "=3.3.1",
     "mmdb-lib": "=3.0.2",
     "netmask": "=2.1.1",
