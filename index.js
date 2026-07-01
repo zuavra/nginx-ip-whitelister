@@ -55,9 +55,9 @@ const regexp = {
 
 // initial stuff common to all routes
 app.use(null, (req, res) => {
-    if (!res.local) res.local = {};
-    res.local.URL = factories.urlFactory(req.url, 'http://ignore.this');
+    res.local = {};
 
+    res.local.URL = factories.urlFactory(req.url, 'http://ignore.this');
     res.local.logger = factories.loggerFactory(process.env.DEBUG, factories.dateFactory, timeLib.logTimestamp);
 
     if ('GET' !== req.method) {
