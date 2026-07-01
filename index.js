@@ -106,7 +106,7 @@ app.use(regexp.adminList,
     mAdmin_whitelist(factories.dateFactory, geoIP, timeLib.humanInterval, timeLib.logTimestamp, htmlResources));
 app.use(regexp.adminDelete, mAdmin_delete(factories.mapFactory));
 
-// fallback handlers for unknown routes any uncaught errors
+// fallback handlers for unknown routes and uncaught errors
 app.use(null,
     (_, res) => {
         res.statusCode = 404;
@@ -121,6 +121,6 @@ app.use(null,
 globalLogger.flush('Loaded application.');
 
 const PORT = parseInt(process.env.PORT) || 3000;
-const HOST = process.env.HOST || '0.0.0.0';
+const HOST = process.env.HOST || '';
 globalLogger.flush(`Listening on ${HOST}:${PORT}.`);
 app.listen(PORT, HOST);
