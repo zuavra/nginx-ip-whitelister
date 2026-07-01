@@ -23,6 +23,6 @@ export default
     res.local.visitorTOTP = params[2] || '';
     // apply relevant values to logger
     res.local.accessKeys.map(res.local.logger.addScrubString);
-    res.local.logger.addPrefix('X:' + res.local.remoteIP);
+    res.local.logger.addPrefix('F=' + res.local.remoteIP);
     res.local.logger.addPrefix(res.local.originalURI, true);
 };

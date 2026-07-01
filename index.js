@@ -67,6 +67,11 @@ app.use(null, (req, res) => {
     }
 });
 
+// log the remote address from this point forward
+app.use(null, (req, res) => {
+    res.local.logger.addPrefix('R=' + req.connection.remoteAddress);
+});
+
 // explicit approve/reject routes, for reference/testing
 app.use(regexp.approve, (_, res) => {
     res.local.logger.flush('Explicit approve.');
@@ -97,9 +102,6 @@ app.use(regexp.verify,
 );
 
 // handle admin routes
-app.use(null, (req, res) => {
-    res.local.logger.addPrefix('R:' + req.connection.remoteAddress);
-});
 app.use(regexp.adminList,
     mAdmin_whitelist(factories.dateFactory, geoIP, timeLib.humanInterval, timeLib.logTimestamp, htmlResources));
 app.use(regexp.adminDelete, mAdmin_delete(factories.mapFactory));
