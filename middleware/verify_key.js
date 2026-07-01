@@ -1,4 +1,8 @@
 export default (_, res) => {
+    if (res.local.accessKeys.length === 0) {
+        res.local.logger.queue(`No keys defined.`);
+        return;
+    }
     if (res.local.visitorKey) {
         const locatedKey = res.local.accessKeys.indexOf(res.local.visitorKey);
         if (locatedKey !== -1) {

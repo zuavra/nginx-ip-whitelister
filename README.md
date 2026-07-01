@@ -114,7 +114,7 @@ After completing the requirements and activating the whitelister in the proxy co
 
 To make it work you need to use a link like this:
 
-`https://your.domain[:PORT]/?ACCESS-KEY[:TOTP]`
+`https://your.domain[:PORT]/?[ACCESS-KEY][:TOTP]`
 
 This will record your current IP and allow it normal access for a period of time. If you're using someone's WiFi all the devices using it will have access too, meaning you can cast to local media devices, TVs etc.
 
@@ -319,7 +319,7 @@ The header names are case insensitive. Most of these headers can be used multipl
 * `x-nipw-netmask-deny`: Define an IP network masks to deny. An IP that matches any of the deny masks will be rejected. These headers will be ignored if any `-netmask-allow` header is defined.
 * `x-nipw-geoip-allow`: Specify a two-letter ISO-3166-1 country code to allow. An IP that doesn't match any allow countries will be rejected. Private IPs always pass this check.
 * `x-nipw-geoip-deny`: Define a two-letter ISO-3166-1 country code to deny. An IP that matches any of the deny countries will be rejected. Private IPs always pass this check. These headers will be ignored if any `-geoip-allow` header is defined.
-* `x-nipw-totp`: Define a TOTP secret. If any `-totp` header is defined, the visitor will have to append a valid TOTP code matching one of the secrets to the URL key, separated by a colon: `/?ACCESS-KEY:TOTP-CODE`. If none of the secrets have been matched the request will be rejected.
+* `x-nipw-totp`: Define a TOTP secret. If any `-totp` header is defined, the visitor will have to append a valid TOTP code matching one of the secrets to the URL key, separated by a colon: `/?[ACCESS-KEY]:TOTP-CODE`. If none of the secrets have been matched the request will be rejected.
 
 > Please understand that GeoIP matching is far from perfect. This project uses a "lite" GeoIP database which is not super-accurate, but even the larger databases can make mistakes. Accept the fact that occasionally you will end up blocking (or allowing) an IP that shouldn't be.
 
@@ -332,11 +332,14 @@ The logic works in the following order:
 * If any deny netmasks are defined and the IP matches any of them, request is rejected.
 * If any GeoIP allow countries are defined and the IP is not private and doesn't match any of them, request is rejected.
 * If any GeoIP deny countries are defined and the IP is not private and matches any of them, request is rejected.
-* If the IP is found in the whitelist and has not expired (subject to both sliding and fixed timeout), request is approved.
-* If the visitor's URL key doesn't match any of the defined keys, request is rejected.
-* If key isolation is in effect and the visitor's key was already used by another IP in the whitelist, request is rejected.
 * If any TOTP secrets are defined and the visitor's URL TOTP code doesn't match any of them, request is rejected.
-* The IP is added to the whitelist, request is approved.
+* If any keys have been defined:
+  * If visitor key is "LOGOUT" their IP is removed from whitelist, request is rejected.
+  * If the IP is found in the whitelist and has not expired (subject to both sliding and fixed timeout), request is approved.
+  * If the visitor's URL key doesn't match any of the defined keys, request is rejected.
+  * If key isolation is in effect and the visitor's key was already used by another IP in the whitelist, request is rejected.
+  * The IP is added to the whitelist, request is approved.
+* If no keys have been defined, request is approved.
 
 > **Remember** that the whitelist is stored in RAM and will be lost every time you stop or restart the app (or its container).
 

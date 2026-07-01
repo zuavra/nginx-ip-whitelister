@@ -18,13 +18,17 @@ const app = factories.appFactory();
 const whitelistStore = factories.mapFactory();
 const globalLogger = factories.loggerFactory('yes', factories.dateFactory, timeLib.logTimestamp);
 
+import PJSON from './package.json' with {type: 'json'};
+const VERSION = PJSON.version;
+globalLogger.flush(`App version ${VERSION} started.`);
+
 import mVerify_selectWhitelist from './middleware/verify_select_whitelist.js';
 import mVerify_netmasks from './middleware/verify_netmasks.js';
 import mVerify_checkWhitelist from './middleware/verify_check_whitelist.js';
 import mVerify_getProxyConfig from './middleware/verify_get_proxy_config.js';
 import mVerify_key from './middleware/verify_key.js';
 import mVerify_geoip from './middleware/verify_geoip.js';
-import mVerify_approve from './middleware/verify_approve.js';
+import mVerify_addToWhitelist from './middleware/verify_add_whitelist.js';
 import mVerify_totp from './middleware/verify_totp.js';
 import mVerify_logout from './middleware/verify_logout.js';
 import mAdmin_whitelist from './middleware/admin_whitelist.js';
@@ -39,11 +43,21 @@ const htmlResources = {
     css: fs.readFileSync('./resources/style.css'),
     js: fs.readFileSync('./resources/script.js'),
 };
+globalLogger.flush('Loaded HTML resources.');
 
+const regexp = {
+    approve: new RegExp("^/approve/?$"),
+    reject: new RegExp("^/reject/?$"),
+    verify: new RegExp("^/verify/?$"),
+    adminList: new RegExp("^/admin/whitelist/?$"),
+    adminDelete: new RegExp("^/admin/delete/?$"),
+};
+
+// initial stuff common to all routes
 app.use(null, (req, res) => {
-    if (!res.local) res.local = {};
-    res.local.URL = factories.urlFactory(req.url, 'http://ignore.this');
+    res.local = {};
 
+    res.local.URL = factories.urlFactory(req.url, 'http://ignore.this');
     res.local.logger = factories.loggerFactory(process.env.DEBUG, factories.dateFactory, timeLib.logTimestamp);
 
     if ('GET' !== req.method) {
@@ -52,39 +66,56 @@ app.use(null, (req, res) => {
         res.end('METHOD NOT ALLOWED');
     }
 });
-app.use(new RegExp("^/approve/?$"), (_, res) => {
+
+// log the remote address from this point forward
+app.use(null, (req, res) => {
+    res.local.logger.addPrefix('R=' + req.connection.remoteAddress);
+});
+
+// explicit approve/reject routes, for reference/testing
+app.use(regexp.approve, (_, res) => {
     res.local.logger.flush('Explicit approve.');
     res.statusCode = 200;
     res.end('APPROVED');
 });
-app.use(new RegExp("^/reject/?$"), (_, res) => {
+app.use(regexp.reject, (_, res) => {
     res.local.logger.flush('Explicit reject.');
     res.statusCode = 403;
     res.end('REJECTED');
 });
 
+// list store is needed for both verify and admin routes
 app.use(null, (_, res) => {
     res.local.whitelistStore = whitelistStore;
 });
-app.use(new RegExp("^/verify/?$"),
-    mVerify_selectWhitelist(whitelistStore, factories.mapFactory),
+
+// only for verify
+app.use(regexp.verify,
     mVerify_getProxyConfig(factories.urlFactory, timeLib.parseInterval),
+
     mVerify_netmasks(factories.netmaskFactory),
     mVerify_geoip(geoIP, isPrivateIP),
+    mVerify_totp(createTOTP),
+
+    mVerify_selectWhitelist(whitelistStore, factories.mapFactory),
     mVerify_logout,
     mVerify_checkWhitelist(factories.dateFactory),
     mVerify_key,
-    mVerify_totp(createTOTP),
-    mVerify_approve(factories.dateFactory),
+    mVerify_addToWhitelist(factories.dateFactory),
+
+    (_, res) => {
+        res.statusCode = 200;
+        res.local.logger.flush('Allowed.');
+        res.end();
+    },
 );
 
-app.use(null, (req, res) => {
-    res.local.logger.addPrefix('R:' + req.connection.remoteAddress);
-});
-app.use(new RegExp("^/admin/whitelist/?$"),
+// handle admin routes
+app.use(regexp.adminList,
     mAdmin_whitelist(factories.dateFactory, geoIP, timeLib.humanInterval, timeLib.logTimestamp, htmlResources));
-app.use(new RegExp("^/admin/delete/?$"), mAdmin_delete(factories.mapFactory));
+app.use(regexp.adminDelete, mAdmin_delete(factories.mapFactory));
 
+// fallback handlers for unknown routes and uncaught errors
 app.use(null,
     (_, res) => {
         res.statusCode = 404;
@@ -99,6 +130,6 @@ app.use(null,
 globalLogger.flush('Loaded application.');
 
 const PORT = parseInt(process.env.PORT) || 3000;
-const HOST = process.env.HOST || '0.0.0.0';
+const HOST = process.env.HOST || '';
 globalLogger.flush(`Listening on ${HOST}:${PORT}.`);
 app.listen(PORT, HOST);

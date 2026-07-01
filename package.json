@@ -1,6 +1,6 @@
 {
   "name": "nginx-ip-whitelister",
-  "version": "1.5.1",
+  "version": "1.6.0",
   "description": "Authentication backend that works with the Nginx ngx_http_auth_request_module and whitelists remote IP address if a key is provided.",
   "main": "index.js",
   "type": "module",
@@ -10,7 +10,6 @@
     }
   },
   "scripts": {
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest"
   },
   "keywords": [
     "nginx",
@@ -25,13 +24,12 @@
   "license": "MIT",
   "dependencies": {
     "crumbware": "=0.0.4",
-    "dotenv": "=17.4.1",
+    "dotenv": "=17.4.2",
     "jssha": "=3.3.1",
-    "mmdb-lib": "=3.0.1",
-    "netmask": "=2.0.2",
+    "mmdb-lib": "=3.0.2",
+    "netmask": "=2.1.1",
     "totp-auth": "=1.0.11"
   },
   "devDependencies": {
-    "jest": "^30.0.2"
   }
 }
