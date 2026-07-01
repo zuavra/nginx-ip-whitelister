@@ -69,7 +69,7 @@ app.use(null, (req, res) => {
 
 // log the remote address from this point forward
 app.use(null, (req, res) => {
-    res.local.logger.addPrefix('R=' + req.connection.remoteAddress);
+    res.local.logger.addPrefix('R=' + req.socket.remoteAddress);
 });
 
 // explicit approve/reject routes, for reference/testing

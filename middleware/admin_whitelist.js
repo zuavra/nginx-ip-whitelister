@@ -24,7 +24,7 @@ export default
         if (whitelist.size === 0) res.write('<th>&nbsp;'); else res.write(`<th><a class="kill" href="/admin/delete?whitelist=${name}&ip=all">kill all</a>`);
         res.write('<tbody>');
         for (const [ip, entry] of whitelist) {
-            res.write(`<tr><td class="${ip === req.connection.remoteAddress ? 'you' : ''}">${ip}`);
+            res.write(`<tr><td class="${ip === req.socket.remoteAddress ? 'you' : ''}">${ip}`);
             res.write(`<td>${entry.usedKey.slice(0,3)}..${entry.usedKey.slice(-3)}`);
             res.write(`<td>${geoIP.get(ip)?.country?.iso_code || '&mdash;'}`);
 
