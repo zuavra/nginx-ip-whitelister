@@ -16,11 +16,14 @@ import factories from './lib/factories.js';
 dotenv.config();
 const app = factories.appFactory();
 const whitelistStore = factories.mapFactory();
-const globalLogger = factories.loggerFactory('yes', factories.dateFactory, timeLib.logTimestamp);
+const globalLogger = factories.loggerFactory(true, factories.dateFactory, timeLib.logTimestamp);
 
 import PJSON from './package.json' with {type: 'json'};
-const VERSION = PJSON.version;
+const VERSION = PJSON?.version;
 globalLogger.flush(`App version ${VERSION} started.`);
+const DEBUG = ('' + process.env.DEBUG).toLowerCase();
+const CONN_DEBUG = !!(DEBUG == 'yes' || DEBUG == 'true');
+globalLogger.flush(`Connection debugging is ${CONN_DEBUG ? "enabled" : "disabled"}.`);
 
 import mVerify_selectWhitelist from './middleware/verify_select_whitelist.js';
 import mVerify_netmasks from './middleware/verify_netmasks.js';
@@ -56,9 +59,8 @@ const regexp = {
 // initial stuff common to all routes
 app.use(null, (req, res) => {
     res.local = {};
-
     res.local.URL = factories.urlFactory(req.url, 'http://ignore.this');
-    res.local.logger = factories.loggerFactory(process.env.DEBUG, factories.dateFactory, timeLib.logTimestamp);
+    res.local.logger = factories.loggerFactory(CONN_DEBUG, factories.dateFactory, timeLib.logTimestamp);
 
     if ('GET' !== req.method) {
         res.local.logger.flush(`Unsupported method "${req.method}" attempt.`);
