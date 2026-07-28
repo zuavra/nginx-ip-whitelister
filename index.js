@@ -35,7 +35,7 @@ import mAdmin_whitelist from './middleware/admin_whitelist.js';
 import mAdmin_delete from './middleware/admin_delete.js';
 globalLogger.flush('Loaded all middleware.');
 
-const buffer = fs.readFileSync('./dbip-country-lite.mmdb');
+const buffer = fs.readFileSync('./dbip-country-lite-2026-07.mmdb');
 const geoIP = factories.mmdbReaderFactory(buffer);
 globalLogger.flush('Loaded GeoIP database.');
 
