@@ -1,6 +1,9 @@
 FROM node:26 AS build
 WORKDIR /opt/niw
-COPY . .
+COPY LICENSE index.js dbip-country-lite-2026-07.mmdb package.json package-lock.json ./
+COPY lib ./lib
+COPY middleware ./middleware
+COPY resources ./resources
 RUN npm ci --omit=dev
 
 FROM gcr.io/distroless/nodejs26-debian13
