@@ -1,0 +1,22 @@
+services:
+  niw:
+    image: ghcr.io/zuavra/nginx-ip-whitelister:latest
+    container_name: proxy-niw # runtime container name
+    hostname: niw # name to be found as on docker networks
+    init: true # docker init to handle signals and reap processes
+    user: "1000:1000" # replace with your own non-privileged UID:GID
+    cap_drop:
+      - ALL # does not need any system capabilities
+    security_opt:
+      - no-new-privileges # forbid container from elevating privileges 
+    read_only: true # read-only filesystem
+    # port mapping is only needed if you want to expose this on host/LAN;
+    # not needed if you're using a docker network (strongly recommended)
+    #ports:
+    #    - "3000:3000/tcp" # also change PORT= if you change this
+    environment:
+      - TZ=Europe/Paris # change to your timezone; required for correct timekeeping
+      - PORT=3000 # also change ports: if you change this
+      - HOST=0.0.0.0 # can leave blank to attempt all IPv4/IPv6
+      - DEBUG=yes # if you want to log all connections
+    restart: always
