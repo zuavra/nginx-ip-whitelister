@@ -1,7 +1,7 @@
 export default
 (dateFactory, geoIP, humanInterval, logTimestamp, htmlResources) =>
 (req, res) => {
-    res.local.logger.addPrefix('ADMIN STATUS');
+    res.local.logger.addMeta('ADMIN', 'STATUS');
     res.statusCode = 200;
     const now = dateFactory();
 
@@ -40,6 +40,6 @@ export default
     }
     res.write('</body>');
 
-    res.local.logger.flush('Viewed whitelist status.');
+    res.local.logger.info('Viewed whitelist status.');
     res.end();
 };

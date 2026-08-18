@@ -31,16 +31,19 @@ import isPrivateIP from './lib/private_ip.js';
 import factories from './lib/factories.js';
 
 dotenv.config();
-const app = factories.appFactory();
-const whitelistStore = factories.mapFactory();
-const globalLogger = factories.loggerFactory(true, factories.dateFactory, timeLib.logTimestamp);
+const LOG_LEVEL = ('' + process.env.LOG_LEVEL).toLowerCase();
+const PORT = parseInt(process.env.PORT) || 3000;
+const HOST = process.env.HOST || '';
 
 import PJSON from './package.json' with {type: 'json'};
 const VERSION = PJSON?.version;
-globalLogger.flush(`App version ${VERSION} started.`);
-const DEBUG = ('' + process.env.DEBUG).toLowerCase();
-const CONN_DEBUG = !!(DEBUG == 'yes' || DEBUG == 'true');
-globalLogger.flush(`Connection debugging is ${CONN_DEBUG ? "enabled" : "disabled"}.`);
+
+const app = factories.appFactory();
+const whitelistStore = factories.mapFactory();
+const globalLogger = factories.structLoggerFactory(LOG_LEVEL, () => timeLib.logTimestamp(factories.dateFactory));
+
+globalLogger.notice(`App version ${VERSION} started.`);
+globalLogger.notice(`Log level is '${globalLogger.getLogLevel()}'.`);
 
 import mVerify_selectWhitelist from './middleware/verify_select_whitelist.js';
 import mVerify_netmasks from './middleware/verify_netmasks.js';
@@ -53,17 +56,17 @@ import mVerify_totp from './middleware/verify_totp.js';
 import mVerify_logout from './middleware/verify_logout.js';
 import mAdmin_whitelist from './middleware/admin_whitelist.js';
 import mAdmin_delete from './middleware/admin_delete.js';
-globalLogger.flush('Loaded all middleware.');
+globalLogger.info('Loaded all middleware.');
 
 const buffer = fs.readFileSync('./dbip-country-lite-2026-07.mmdb');
 const geoIP = factories.mmdbReaderFactory(buffer);
-globalLogger.flush('Loaded GeoIP database.');
+globalLogger.info('Loaded GeoIP database.');
 
 const htmlResources = {
     css: fs.readFileSync('./resources/style.css'),
     js: fs.readFileSync('./resources/script.js'),
 };
-globalLogger.flush('Loaded HTML resources.');
+globalLogger.info('Loaded HTML resources.');
 
 const regexp = {
     approve: new RegExp("^/approve/?$"),
@@ -77,10 +80,10 @@ const regexp = {
 app.use(null, (req, res) => {
     res.local = {};
     res.local.URL = factories.urlFactory(req.url, 'http://ignore.this');
-    res.local.logger = factories.loggerFactory(CONN_DEBUG, factories.dateFactory, timeLib.logTimestamp);
+    res.local.logger = factories.structLoggerFactory(LOG_LEVEL, () => timeLib.logTimestamp(factories.dateFactory));
 
     if ('GET' !== req.method) {
-        res.local.logger.flush(`Unsupported method "${req.method}" attempt.`);
+        res.local.logger.error(`Unsupported method "${req.method}" attempt.`);
         res.statusCode = 405;
         res.end('METHOD NOT ALLOWED');
     }
@@ -88,17 +91,17 @@ app.use(null, (req, res) => {
 
 // log the remote address from this point forward
 app.use(null, (req, res) => {
-    res.local.logger.addPrefix('R=' + req.socket.remoteAddress);
+    res.local.logger.addMeta('remote_ip', req.socket.remoteAddress);
 });
 
 // explicit approve/reject routes, for reference/testing
 app.use(regexp.approve, (_, res) => {
-    res.local.logger.flush('Explicit approve.');
+    res.local.logger.info('Explicit approve.');
     res.statusCode = 200;
     res.end('APPROVED');
 });
 app.use(regexp.reject, (_, res) => {
-    res.local.logger.flush('Explicit reject.');
+    res.local.logger.info('Explicit reject.');
     res.statusCode = 403;
     res.end('REJECTED');
 });
@@ -124,7 +127,7 @@ app.use(regexp.verify,
 
     (_, res) => {
         res.statusCode = 200;
-        res.local.logger.flush('Allowed.');
+        res.local.logger.debug('Allowed.');
         res.end();
     },
 );
@@ -136,19 +139,20 @@ app.use(regexp.adminDelete, mAdmin_delete(factories.mapFactory));
 
 // fallback handlers for unknown routes and uncaught errors
 app.use(null,
-    (_, res) => {
+    (req, res) => {
+        res.local.logger.addMeta('path', req.url, true);
+        res.local.logger.error('Route not found.');
         res.statusCode = 404;
         res.end('NOT FOUND');
     },
-    (error, _, res) => {
-        console.error('Server error:', error);
+    (error, req, res) => {
+        res.local.logger.addMeta('path', req.url, true);
+        res.local.logger.crit('Server error.');
         res.statusCode = 500;
         res.end('FATAL ERROR');
     },
 );
-globalLogger.flush('Loaded application.');
+globalLogger.info('Loaded application.');
 
-const PORT = parseInt(process.env.PORT) || 3000;
-const HOST = process.env.HOST || '';
-globalLogger.flush(`Listening on ${HOST}:${PORT}.`);
+globalLogger.notice(`Listening on ${HOST}:${PORT}.`);
 app.listen(PORT, HOST);

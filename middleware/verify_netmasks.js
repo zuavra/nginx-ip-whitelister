@@ -12,7 +12,7 @@ export default
             }
         }
         res.statusCode = 403;
-        res.local.logger.flush('No allowed netmask matched. Rejected.');
+        res.local.logger.debug('No allowed netmask matched. Rejected.');
         return res.end();
     }
 
@@ -23,7 +23,7 @@ export default
             const block = netmaskFactory(netmask);
             if (block.contains(res.local.remoteIP)) {
                 res.statusCode = 403;
-                res.local.logger.flush(`IP matched denied mask ${netmask}. Rejected.`);
+                res.local.logger.debug(`IP matched denied mask ${netmask}. Rejected.`);
                 return res.end();
             }
         };
