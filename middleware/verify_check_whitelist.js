@@ -30,5 +30,6 @@ export default
 
     // entry has expired, remove from whitelist, will resume normal checks
     res.local.whitelist.delete(res.local.remoteIP);
-    res.local.logger.queue('IP found but expired.');
+    res.local.logger.elevate('notice');
+    res.local.logger.queue('IP found but expired, deleted.');
 };

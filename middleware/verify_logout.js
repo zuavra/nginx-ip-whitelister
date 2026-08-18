@@ -8,6 +8,7 @@ export default (_, res) => {
         const entry = res.local.whitelist.get(res.local.remoteIP);
         if (entry) {
             res.local.whitelist.delete(res.local.remoteIP);
+            res.local.logger.elevate('notice');
             res.local.logger.queue('IP deleted.');
         }
         else {
