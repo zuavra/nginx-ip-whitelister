@@ -31,16 +31,18 @@ import isPrivateIP from './lib/private_ip.js';
 import factories from './lib/factories.js';
 
 dotenv.config({quiet: true});
-const LOG_LEVEL = ('' + process.env.LOG_LEVEL).toLowerCase();
 const PORT = parseInt(process.env.PORT) || 3000;
 const HOST = process.env.HOST || '';
+const LOG_LEVEL = ('' + process.env.LOG_LEVEL).toLowerCase();
+const DEFINED_LEVELS = ['debug', 'info', 'notice', 'warn', 'error', 'crit'];
 
 import PJSON from './package.json' with {type: 'json'};
 const VERSION = PJSON?.version;
 
 const app = factories.appFactory();
 const whitelistStore = factories.mapFactory();
-const globalLogger = factories.structLoggerFactory(LOG_LEVEL, () => timeLib.logTimestamp(factories.dateFactory));
+const tsMaker = () => timeLib.logTimestamp(factories.dateFactory);
+const globalLogger = factories.structLoggerFactory(LOG_LEVEL, DEFINED_LEVELS, tsMaker);
 
 globalLogger.notice(`App version ${VERSION} started.`);
 globalLogger.notice(`Log level is '${globalLogger.getLogLevel()}'.`);
@@ -80,7 +82,7 @@ const regexp = {
 app.use(null, (req, res) => {
     res.local = {};
     res.local.URL = factories.urlFactory(req.url, 'http://ignore.this');
-    res.local.logger = factories.structLoggerFactory(LOG_LEVEL, () => timeLib.logTimestamp(factories.dateFactory));
+    res.local.logger = factories.structLoggerFactory(LOG_LEVEL, DEFINED_LEVELS, tsMaker);
 
     if ('GET' !== req.method) {
         res.local.logger.error(`Unsupported method "${req.method}" attempt.`);
