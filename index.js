@@ -30,7 +30,7 @@ import * as timeLib from "./lib/time.js";
 import isPrivateIP from './lib/private_ip.js';
 import factories from './lib/factories.js';
 
-dotenv.config();
+dotenv.config({quiet: true});
 const LOG_LEVEL = ('' + process.env.LOG_LEVEL).toLowerCase();
 const PORT = parseInt(process.env.PORT) || 3000;
 const HOST = process.env.HOST || '';
