@@ -12,5 +12,6 @@ export default
         usedKey: res.local.visitorKey,
         countryCode: res.local.ipCountryCode || '',
     });
+    res.local.logger.elevate('notice');
     res.local.logger.queue('IP added.');
 };
