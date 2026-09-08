@@ -24,7 +24,7 @@ export default
         );
 
         res.statusCode = 200;
-        res.local.logger.flush('IP found. Allowed.');
+        res.local.logger.debug('IP found. Allowed.');
         return res.end();
     }
 

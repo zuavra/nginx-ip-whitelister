@@ -11,7 +11,7 @@ export default
             }
         }
         res.statusCode = 403;
-        res.local.logger.flush('TOTP matched zero secrets. Rejected.');
+        res.local.logger.debug('TOTP matched zero secrets. Rejected.');
         return res.end();
     }
 };

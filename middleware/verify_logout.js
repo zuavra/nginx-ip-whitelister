@@ -14,7 +14,7 @@ export default (_, res) => {
             res.local.logger.queue('IP not found.');
         }
         res.statusCode = 403;
-        res.local.logger.flush('Rejected.');
+        res.local.logger.debug('Rejected.');
         return res.end();
     }
 };

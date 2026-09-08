@@ -10,7 +10,7 @@ export default (_, res) => {
                 for (const [ip, entry] of res.local.whitelist) {
                     if (res.local.visitorKey === entry.usedKey) {
                         res.statusCode = 403;
-                        res.local.logger.flush(`Key is being used by IP ${ip}. Rejected.`);
+                        res.local.logger.debug(`Key is being used by IP ${ip}. Rejected.`);
                         return res.end();
                     }
                 }
@@ -20,6 +20,6 @@ export default (_, res) => {
         }
     }
     res.statusCode = 403;
-    res.local.logger.flush('No keys matched. Rejected.');
+    res.local.logger.debug('No keys matched. Rejected.');
     return res.end();
 };
