@@ -27,7 +27,7 @@
     "dotenv": "=17.4.2",
     "ip-regex": "=5.0.0",
     "jssha": "=3.3.1",
-    "mmdb-lib": "=3.0.2",
+    "mmdb-lib": "=3.0.3",
     "netmask": "=2.1.1",
     "totp-auth": "=1.0.11"
   },
