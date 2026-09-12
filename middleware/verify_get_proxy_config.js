@@ -12,8 +12,8 @@ export default
     res.local.totpSecrets = getHeaders('x-nipw-totp');
     res.local.goodCountries = getHeaders('x-nipw-geoip-allow');
     res.local.badCountries = getHeaders('x-nipw-geoip-deny');
-    res.local.goodNetmasks = getHeaders('x-nipw-netmask-allow');
-    res.local.badNetmasks = getHeaders('x-nipw-netmask-deny');
+    res.local.excludeRanges = getHeaders('x-nipw-ip-exclude'); 
+    res.local.anyLegacyNetmasks = !!(getHeaders('x-nipw-netmask-allow').length || getHeaders('x-nipw-netmask-deny').length);
     res.local.fixedTimeout = parseInterval(getHeaders('x-nipw-fixed-timeout')[0] || '');
     res.local.slidingTimeout = parseInterval(getHeaders('x-nipw-sliding-timeout')[0] || '');
     // extract query string values in format ?key:totp

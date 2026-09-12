@@ -434,31 +434,28 @@ The header names are case insensitive. Most of these headers can be used multipl
 
 > ⚠️ Please note that different reverse proxies may have different syntax for specifying multiple values for the same header name. For example in Nginx `proxy_set_header` will set multiple values if used multiple times, but in Caddy you need to use add a plus sign (`+`) in front of the header name with `header_up` otherwise it will overwrite the other values and only send one.
 
-* `x-nipw-key`: Define an authentication key.
+* `x-nipw-ip-exclude`: Format: single IP or an IP range in CIDR notation.
   - Multiple such headers can be provided.
-  - If no such header has been provided, all key-related functionality **is turned off**.
-* `x-nipw-key-isolation`: Value can be *"enabled" (default)* or "disabled" (case-insensitive).
+  - Both IPv4 and IPv6 are supported.
+  - An IP that matches any of these ranges will skip all other checks (key, geo, TOTP).
+* `x-nipw-key`: Format: any string. Define an authentication key.
+  - Multiple such headers can be provided.
+  - If zero such headers have been provided, all key-related functionality **is turned off**.
+* `x-nipw-key-isolation`: Either *"enabled" (default)* or "disabled" (case-insensitive).
   - This header is only processed once (duplicates are ignored).
-  - When key isolation is enabled it prevents keys from being used by multiple IPs at the same time within the same whitelist; once an IP has been added to a whitelisted the key it used can't be used again until the IP exits that particular whitelist.
-* `x-nipw-netmask-allow`: Define an IP network mask to allow.
-  - Multiple such headers can be provided.
-  - An IP that doesn't match any of the allow masks will be rejected.
-* `x-nipw-netmask-deny`: Define an IP network masks to deny.
-  - Multiple such headers can be provided.
-  - An IP that matches any of the deny masks will be rejected.
-  - These headers will be ignored if any `-netmask-allow` header is defined.
-* `x-nipw-geoip-allow`: Specify a two-letter ISO-3166-1 country code to allow.
+  - When key isolation is enabled it prevents keys from being used by multiple IPs at the same time within the same whitelist; once an IP has been added to a whitelist the key it used can't be used again until the IP exits that particular whitelist.
+* `x-nipw-geoip-allow`: Specify a [two-letter ISO-3166-2 country code](https://en.wikipedia.org/wiki/ISO_3166-2) to **allow**.
   - Multiple such headers can be provided.
   - An IP that doesn't match any allow countries will be rejected.
-  - Private IPs always pass this check.
-* `x-nipw-geoip-deny`: Define a two-letter ISO-3166-1 country code to deny
+  - [Private IPs](https://en.wikipedia.org/wiki/Private_network) always pass this check.
+* `x-nipw-geoip-deny`: Specify a [two-letter ISO-3166-2 country code](https://en.wikipedia.org/wiki/ISO_3166-2) to **deny**.
   - Multiple such headers can be provided.
   - An IP that matches any of the deny countries will be rejected.
   - These headers will be ignored if any `-geoip-allow` header is defined.
-  - Private IPs always pass this check.
+  - [Private IPs](https://en.wikipedia.org/wiki/Private_network) always pass this check.
 * `x-nipw-totp`: Define a TOTP secret.
   - Multiple such headers can be provided.
-  - If any `-totp` header is defined, the visitor will have to append a valid TOTP code matching one of the secrets to the URL key, separated by a colon. Examples: `/?accesskey:123456` or `/?:123456`.
+  - If any `-totp` header is defined, the visitor will have to append a valid TOTP code matching one of the secrets to the URL key, separated by a colon. Examples: `/?accesskey:123456` (both key and TOTP are provided) or `/?:123456` (TOTP is provided but key isn't).
   - If none of the secrets have been matched the request will be rejected.
 
 ℹ️ Please understand that GeoIP matching is far from perfect. This project uses a "lite" GeoIP database which is not super-accurate, but even the larger databases can make mistakes. Accept the fact that occasionally you will end up blocking (or allowing) an IP that shouldn't be.
@@ -468,10 +465,10 @@ The header names are case insensitive. Most of these headers can be used multipl
 The logic works in the following order:
 
 * If NIW cannot be reached by the reverse proxy or returns any status code other than 200 (including 500 if it malfunctions), request is rejected.
-* If any allow netmasks are defined and the IP doesn't match any of them, request is rejected.
-* If any deny netmasks are defined and the IP matches any of them, request is rejected.
-* If any GeoIP allow countries are defined and the IP is not private and doesn't match any of them, request is rejected.
-* If any GeoIP deny countries are defined and the IP is not private and matches any of them, request is rejected.
+* _If any legacy config headers `x-nipw-netmask-allow` or `x-nipw-netmask-deny` have been defined, regardless of their content, request is rejected. (In version 1.7.0 these headers were deprecated in favor of more powerful IP filters implemented in the reverse proxy or firewall. To be safe, this rejection will prevent access through NIW instances that haven't updated their config.)_
+* If any exclusion IP range is defined and the IP matches any of them, request is approved.
+* If any GeoIP-allow countries are defined and the IP is not private and doesn't match any of them, request is rejected.
+* If any GeoIP-deny countries are defined and the IP is not private and matches any of them, request is rejected.
 * If any TOTP secrets are defined and the visitor's URL TOTP code doesn't match any of them, request is rejected.
 * If any keys have been defined:
   * If visitor key is "LOGOUT" their IP is removed from the whitelist, request is rejected.

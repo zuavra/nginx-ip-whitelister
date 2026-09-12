@@ -31,7 +31,7 @@ globalLogger.notice(`App version ${VERSION} started.`);
 globalLogger.notice(`Log level is '${globalLogger.getLogLevel()}'.`);
 
 import mVerify_selectWhitelist from './middleware/verify_select_whitelist.js';
-import mVerify_netmasks from './middleware/verify_netmasks.js';
+import mVerify_exclusions from './middleware/verify_exclusions.js';
 import mVerify_checkWhitelist from './middleware/verify_check_whitelist.js';
 import mVerify_getProxyConfig from './middleware/verify_get_proxy_config.js';
 import mVerify_key from './middleware/verify_key.js';
@@ -100,7 +100,7 @@ app.use(null, (_, res) => {
 app.use(regexp.verify,
     mVerify_getProxyConfig(factories.urlFactory, timeLib.parseInterval),
 
-    mVerify_netmasks(factories.netmaskFactory),
+    mVerify_exclusions(factories.netmaskFactory),
     mVerify_geoip(geoIP, isPrivateIP),
     mVerify_totp(createTOTP),
 
