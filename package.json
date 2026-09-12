@@ -1,7 +1,7 @@
 {
   "name": "nginx-ip-whitelister",
-  "version": "1.6.0",
-  "description": "Authentication backend that works with the Nginx ngx_http_auth_request_module and whitelists remote IP address if a key is provided.",
+  "version": "1.7.0",
+  "description": "Forward authenticator for Nginx auth_request or Caddy forward_auth that whitelists remote IP address if a key is presented in URL.",
   "main": "index.js",
   "type": "module",
   "exports": {
