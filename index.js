@@ -48,10 +48,10 @@ const geoIP = factories.mmdbReaderFactory(buffer);
 globalLogger.info('Loaded GeoIP database.');
 
 const htmlResources = {
-    css: fs.readFileSync('./resources/style.css'),
-    js: fs.readFileSync('./resources/script.js'),
+    css: fs.readFileSync('./static/style.css'),
+    js: fs.readFileSync('./static/script.js'),
 };
-globalLogger.info('Loaded HTML resources.');
+globalLogger.info('Loaded HTML static resources.');
 
 const regexp = {
     approve: new RegExp("^/approve/?$"),
