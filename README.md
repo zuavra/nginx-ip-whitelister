@@ -4,7 +4,7 @@ This app (called **NIW** in the rest of this page) is a forward authenticator wr
 
 NIW can run as a standalone Node app or as a hardened (distroless Node) container image. The app is entirely hand-coded (no AI), it's designed to be as simple as possible, uses the least amount of NPM modules with zero extra dependencies, and runs entirely in memory.
 
-> ℹ️ Note: it has "Nginx" in the name because it started out as an Nginx companion app but nowadays more proxies are supported and you can find configuration examples below. If you make it work with other reverse proxies you are welcome to open an enhangement suggestion and describe your configuration.
+> ℹ️ Note: it has "Nginx" in the name because it started out as an Nginx companion app but nowadays more proxies are supported and you can find configuration examples below. If you make it work with other reverse proxies you are welcome to open an enhancement suggestion and describe your configuration.
 
 <!-- TOC depthfrom:2 -->
 
@@ -234,7 +234,7 @@ However, you can also pull any ready-made image manually, to use in Docker confi
 To do that, run:  
 `docker pull ghcr.io/zuavra/nginx-ip-whitelister:latest`
 
-> ℹ️ After pulling the latest image please remember that you also have to stop, remove, and then rebuild or reprovision any Docker containers based on it.
+> ℹ️ After pulling the latest image please remember that you also have to stop, remove, and then rebuild or re-provision any Docker containers based on it.
 
 #### 5.2.4. Build a Docker image yourself
 
@@ -391,7 +391,7 @@ Use `/admin/whitelist` directly to see the current whitelist state. It provides 
 
 Ideally, validation endpoints should only be exposed on an internal Docker network between the reverse proxy container and the validator container; and management endpoints only properly proxied or tunneled.
 
-If you wrap management endpoitns behind the reverse proxy you *can* use the validator to whitelist access to its own management endpoints but it will suffer from all the shortcomings of IP whitelisting.
+If you wrap management endpoints behind the reverse proxy you *can* use the validator to whitelist access to its own management endpoints but it will suffer from all the shortcomings of IP whitelisting.
 
 ### 7.2. Validator configuration
 

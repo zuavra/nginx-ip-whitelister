@@ -18,7 +18,5 @@ export default
                 return res.end();
             }
         }
-
     }
-        
 };
