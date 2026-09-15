@@ -24,7 +24,7 @@
   "author": "zuavra.net",
   "license": "MIT",
   "dependencies": {
-    "crumbware": "=0.0.4",
+    "crumbware": "=0.0.5",
     "dotenv": "=17.4.2",
     "ip-regex": "=5.0.0",
     "jssha": "=3.3.1",
