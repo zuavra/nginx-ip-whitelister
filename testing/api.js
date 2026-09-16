@@ -106,7 +106,7 @@ await testcase("request with bad key gets denied",
         .expect(403)
 ]);
 
-await testcase('same IP after good key gets allowed',
+await testcase('same IP after good key gets allowed (whitelisted)',
 [
     R => R.get('/verify')
             .set('x-forwarded-for', '1.2.3.4')
@@ -120,7 +120,7 @@ await testcase('same IP after good key gets allowed',
             .expect(200),
 ]);
 
-await testcase("request with bad key gets allowed if IP is excluded",
+await testcase("IP exclusion lets you in with a bad key",
 [
     R => R
         .get('/verify')
@@ -131,7 +131,7 @@ await testcase("request with bad key gets allowed if IP is excluded",
         .expect(200)
 ]);
 
-await testcase("request with no key gets allowed if IP is excluded",
+await testcase("IP exclusion lets you in without a key",
 [
     R => R
         .get('/verify')
@@ -142,7 +142,7 @@ await testcase("request with no key gets allowed if IP is excluded",
         .expect(200)
 ]);
 
-await testcase("request with good key gets allowed if IP is excluded",
+await testcase("IP exclusion lets you in with a good key",
 [
     R => R
         .get('/verify')
@@ -151,6 +151,22 @@ await testcase("request with good key gets allowed if IP is excluded",
         .set('x-forwarded-for', '1.2.3.4')
         .set('x-nipw-ip-exclude', '1.2.3.4')
         .expect(200)
+]);
+
+await testcase("IP exclusion does not whitelist the IP",
+[
+    R => R
+        .get('/verify')
+        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
+        .set('x-original-uri', '/?BadKey')
+        .set('x-forwarded-for', '1.2.3.4')
+        .set('x-nipw-ip-exclude', '1.2.3.4')
+        .expect(200),
+    R => R
+        .get('/verify')
+        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
+        .set('x-forwarded-for', '1.2.3.4')
+        .expect(403),
 ]);
 
 await testcase("key isolation is on by default",
@@ -213,19 +229,46 @@ await testcase("IP whitelisted in one list doesn't allow access to another list"
 await testcase("once whitelisted, IP passes config with different keys even with bad key",
 [
     R => R
-        .get('/verify')
+        .get('/verify?SameList')
         .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
         .set('x-original-uri', '/?GoodKey2')
         .set('x-forwarded-for', '1.2.3.4')
         .expect(200),
     R => R
-        .get('/verify')
+        .get('/verify?SameList')
         .set('x-nipw-key', ['DifferentKeyA', 'DifferentKeyB'])
         .set('x-original-uri', '/?BadKeyAltogether')
         .set('x-forwarded-for', '1.2.3.4')
         .set('x-original-uri', '/')
         .expect(200),
 ]);
+
+await testcase("logout denies and removes previously allowed IP",
+[
+    R => R
+        .get('/verify')
+        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
+        .set('x-original-uri', '/?GoodKey1')
+        .set('x-forwarded-for', '1.2.3.4')
+        .expect(200),
+    R => R
+        .get('/verify')
+        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
+        .set('x-forwarded-for', '1.2.3.4')
+        .expect(200),
+    R => R
+        .get('/verify')
+        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
+        .set('x-original-uri', '/?LOGOUT')
+        .set('x-forwarded-for', '1.2.3.4')
+        .expect(403),
+    R => R
+        .get('/verify')
+        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
+        .set('x-forwarded-for', '1.2.3.4')
+        .expect(403),
+]);
+
 
 // key isolation
 // different whitelists
