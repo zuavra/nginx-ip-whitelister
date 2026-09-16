@@ -24,6 +24,12 @@ async function testcase(description, tests, logLevel) {
     }
 }
 
+const KEY_LIST_ONE = ['GoodKey1', 'GoodKey2', 'GoodKey3'];
+const KEY_LIST_TWO = ['DifferentKeyA', 'DifferentKeyB'];
+const BAD_KEY = 'BadKey';
+const IPV4_ONE = '1.2.3.4';
+const IPV4_TWO = '5.6.7.8';
+
 await testcase("explicit approve gets 200",
 [
     R => R
@@ -70,10 +76,10 @@ await testcase("legacy netmask-allow header denies good requests",
 [
     R => R
         .get('/verify')
-        .set('x-nipw-netmask-allow', 'no blank')
-        .set('x-forwarded-for', '1.2.3.4')
-        .set('x-original-uri', '/?GoodKey3')
-        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
+        .set('x-nipw-netmask-allow', '')
+        .set('x-forwarded-for', IPV4_ONE)
+        .set('x-original-uri', `/?${KEY_LIST_ONE[0]}`)
+        .set('x-nipw-key', KEY_LIST_ONE)
         .expect(403)
 ]);
 
@@ -81,10 +87,10 @@ await testcase("legacy netmask-deny header denies good requests",
 [
     R => R
         .get('/verify')
-        .set('x-nipw-netmask-deny', 'not blank')
-        .set('x-forwarded-for', '1.2.3.4')
-        .set('x-original-uri', '/?GoodKey3')
-        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
+        .set('x-nipw-netmask-deny', '')
+        .set('x-forwarded-for', IPV4_ONE)
+        .set('x-original-uri', `/?${KEY_LIST_ONE[0]}`)
+        .set('x-nipw-key', KEY_LIST_ONE)
         .expect(403)
 ]);
 
@@ -92,8 +98,8 @@ await testcase("request with good key gets allowed",
 [
     R => R
         .get('/verify')
-        .set('x-original-uri', '/?GoodKey3')
-        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
+        .set('x-original-uri', `/?${KEY_LIST_ONE[0]}`)
+        .set('x-nipw-key', KEY_LIST_ONE)
         .expect(200)
 ]);
 
@@ -101,22 +107,22 @@ await testcase("request with bad key gets denied",
 [
     R => R
         .get('/verify')
-        .set('x-original-uri', '/?BadKey')
-        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
+        .set('x-original-uri', `/?${BAD_KEY}`)
+        .set('x-nipw-key', KEY_LIST_ONE)
         .expect(403)
 ]);
 
 await testcase('same IP after good key gets allowed (whitelisted)',
 [
     R => R.get('/verify')
-            .set('x-forwarded-for', '1.2.3.4')
-            .set('x-original-uri', '/?GoodKey3')
-            .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
+            .set('x-forwarded-for', IPV4_ONE)
+            .set('x-original-uri', `/?${KEY_LIST_ONE[0]}`)
+            .set('x-nipw-key', KEY_LIST_ONE)
             .expect(200),
     R => R.get('/verify')
-            .set('x-forwarded-for', '1.2.3.4')
+            .set('x-forwarded-for', IPV4_ONE)
             .set('x-original-uri', '/')
-            .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
+            .set('x-nipw-key', KEY_LIST_ONE)
             .expect(200),
 ]);
 
@@ -124,10 +130,10 @@ await testcase("IP exclusion lets you in with a bad key",
 [
     R => R
         .get('/verify')
-        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
-        .set('x-original-uri', '/?BadKey')
-        .set('x-forwarded-for', '1.2.3.4')
-        .set('x-nipw-ip-exclude', '1.2.3.4')
+        .set('x-nipw-key', KEY_LIST_ONE)
+        .set('x-original-uri', `/?${BAD_KEY}`)
+        .set('x-forwarded-for', IPV4_ONE)
+        .set('x-nipw-ip-exclude', IPV4_ONE)
         .expect(200)
 ]);
 
@@ -135,10 +141,10 @@ await testcase("IP exclusion lets you in without a key",
 [
     R => R
         .get('/verify')
-        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
+        .set('x-nipw-key', KEY_LIST_ONE)
         .set('x-original-uri', '/')
-        .set('x-forwarded-for', '1.2.3.4')
-        .set('x-nipw-ip-exclude', '1.2.3.4')
+        .set('x-forwarded-for', IPV4_ONE)
+        .set('x-nipw-ip-exclude', IPV4_ONE)
         .expect(200)
 ]);
 
@@ -146,10 +152,10 @@ await testcase("IP exclusion lets you in with a good key",
 [
     R => R
         .get('/verify')
-        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
-        .set('x-original-uri', '/?GoodKey1')
-        .set('x-forwarded-for', '1.2.3.4')
-        .set('x-nipw-ip-exclude', '1.2.3.4')
+        .set('x-nipw-key', KEY_LIST_ONE)
+        .set('x-original-uri', `/?${KEY_LIST_ONE[0]}`)
+        .set('x-forwarded-for', IPV4_ONE)
+        .set('x-nipw-ip-exclude', IPV4_ONE)
         .expect(200)
 ]);
 
@@ -157,15 +163,15 @@ await testcase("IP exclusion does not whitelist the IP",
 [
     R => R
         .get('/verify')
-        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
-        .set('x-original-uri', '/?BadKey')
-        .set('x-forwarded-for', '1.2.3.4')
-        .set('x-nipw-ip-exclude', '1.2.3.4')
+        .set('x-nipw-key', KEY_LIST_ONE)
+        .set('x-original-uri', `/?${BAD_KEY}`)
+        .set('x-forwarded-for', IPV4_ONE)
+        .set('x-nipw-ip-exclude', IPV4_ONE)
         .expect(200),
     R => R
         .get('/verify')
-        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
-        .set('x-forwarded-for', '1.2.3.4')
+        .set('x-nipw-key', KEY_LIST_ONE)
+        .set('x-forwarded-for', IPV4_ONE)
         .expect(403),
 ]);
 
@@ -173,15 +179,15 @@ await testcase("key isolation is on by default",
 [
     R => R
         .get('/verify')
-        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
-        .set('x-original-uri', '/?GoodKey2')
-        .set('x-forwarded-for', '1.2.3.4')
+        .set('x-nipw-key', KEY_LIST_ONE)
+        .set('x-original-uri', `/?${KEY_LIST_ONE[0]}`)
+        .set('x-forwarded-for', IPV4_ONE)
         .expect(200),
     R => R
         .get('/verify')
-        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
-        .set('x-original-uri', '/?GoodKey2')
-        .set('x-forwarded-for', '5.6.7.8')
+        .set('x-nipw-key', KEY_LIST_ONE)
+        .set('x-original-uri', `/?${KEY_LIST_ONE[0]}`)
+        .set('x-forwarded-for', IPV4_TWO)
         .expect(403),
     
 ]);
@@ -190,16 +196,16 @@ await testcase("key isolation disabled allows key reuse",
 [
     R => R
         .get('/verify')
-        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
-        .set('x-original-uri', '/?GoodKey2')
-        .set('x-forwarded-for', '1.2.3.4')
+        .set('x-nipw-key', KEY_LIST_ONE)
+        .set('x-original-uri', `/?${KEY_LIST_ONE[0]}`)
+        .set('x-forwarded-for', IPV4_ONE)
         .set('x-nipw-key-isolation', 'disabled')
         .expect(200),
     R => R
         .get('/verify')
-        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
-        .set('x-original-uri', '/?GoodKey2')
-        .set('x-forwarded-for', '5.6.7.8')
+        .set('x-nipw-key', KEY_LIST_ONE)
+        .set('x-original-uri', `/?${KEY_LIST_ONE[0]}`)
+        .set('x-forwarded-for', IPV4_TWO)
         .set('x-nipw-key-isolation', 'disabled')
         .expect(200),
 ]);
@@ -207,22 +213,22 @@ await testcase("key isolation disabled allows key reuse",
 await testcase("IP whitelisted in one list doesn't allow access to another list",
 [
     R => R
-        .get('/verify?Foo')
-        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
-        .set('x-original-uri', '/?GoodKey2')
-        .set('x-forwarded-for', '1.2.3.4')
+        .get('/verify?OneList')
+        .set('x-nipw-key', KEY_LIST_ONE)
+        .set('x-original-uri', `/?${KEY_LIST_ONE[0]}`)
+        .set('x-forwarded-for', IPV4_ONE)
         .expect(200),
     R => R
-        .get('/verify?Foo')
-        .set('x-forwarded-for', '1.2.3.4')
+        .get('/verify?OneList')
+        .set('x-forwarded-for', IPV4_ONE)
         .set('x-original-uri', '/')
-        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
+        .set('x-nipw-key', KEY_LIST_ONE)
         .expect(200),
     R => R
-        .get('/verify?Bar')
-        .set('x-forwarded-for', '1.2.3.4')
+        .get('/verify?AnotherList')
+        .set('x-forwarded-for', IPV4_ONE)
         .set('x-original-uri', '/')
-        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
+        .set('x-nipw-key', KEY_LIST_ONE)
         .expect(403),
 ]);
 
@@ -230,15 +236,15 @@ await testcase("once whitelisted, IP passes config with different keys even with
 [
     R => R
         .get('/verify?SameList')
-        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
-        .set('x-original-uri', '/?GoodKey2')
-        .set('x-forwarded-for', '1.2.3.4')
+        .set('x-nipw-key', KEY_LIST_ONE)
+        .set('x-original-uri', `/?${KEY_LIST_ONE[0]}`)
+        .set('x-forwarded-for', IPV4_ONE)
         .expect(200),
     R => R
         .get('/verify?SameList')
-        .set('x-nipw-key', ['DifferentKeyA', 'DifferentKeyB'])
-        .set('x-original-uri', '/?BadKeyAltogether')
-        .set('x-forwarded-for', '1.2.3.4')
+        .set('x-nipw-key', KEY_LIST_TWO)
+        .set('x-original-uri', `/?${BAD_KEY}`)
+        .set('x-forwarded-for', IPV4_ONE)
         .set('x-original-uri', '/')
         .expect(200),
 ]);
@@ -247,25 +253,25 @@ await testcase("logout denies and removes previously allowed IP",
 [
     R => R
         .get('/verify')
-        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
-        .set('x-original-uri', '/?GoodKey1')
-        .set('x-forwarded-for', '1.2.3.4')
+        .set('x-nipw-key', KEY_LIST_ONE)
+        .set('x-original-uri', `/?${KEY_LIST_ONE[0]}`)
+        .set('x-forwarded-for', IPV4_ONE)
         .expect(200),
     R => R
         .get('/verify')
-        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
-        .set('x-forwarded-for', '1.2.3.4')
+        .set('x-nipw-key', KEY_LIST_ONE)
+        .set('x-forwarded-for', IPV4_ONE)
         .expect(200),
     R => R
         .get('/verify')
-        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
+        .set('x-nipw-key', KEY_LIST_ONE)
         .set('x-original-uri', '/?LOGOUT')
-        .set('x-forwarded-for', '1.2.3.4')
+        .set('x-forwarded-for', IPV4_ONE)
         .expect(403),
     R => R
         .get('/verify')
-        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
-        .set('x-forwarded-for', '1.2.3.4')
+        .set('x-nipw-key', KEY_LIST_ONE)
+        .set('x-forwarded-for', IPV4_ONE)
         .expect(403),
 ]);
 
@@ -273,22 +279,22 @@ await testcase("admin IP delete removes previously allowed IP",
 [
     R => R
         .get('/verify')
-        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
-        .set('x-original-uri', '/?GoodKey1')
-        .set('x-forwarded-for', '1.2.3.4')
+        .set('x-nipw-key', KEY_LIST_ONE)
+        .set('x-original-uri', `/?${KEY_LIST_ONE[0]}`)
+        .set('x-forwarded-for', IPV4_ONE)
         .expect(200),
     R => R
         .get('/verify')
-        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
-        .set('x-forwarded-for', '1.2.3.4')
+        .set('x-nipw-key', KEY_LIST_ONE)
+        .set('x-forwarded-for', IPV4_ONE)
         .expect(200),
     R => R
-        .get('/admin/delete?ip=1.2.3.4&whitelist=')
+        .get(`/admin/delete?ip=${IPV4_ONE}&whitelist=`)
         .expect(303),
     R => R
         .get('/verify')
-        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
-        .set('x-forwarded-for', '1.2.3.4')
+        .set('x-nipw-key', KEY_LIST_ONE)
+        .set('x-forwarded-for', IPV4_ONE)
         .expect(403),
 ]);
 
@@ -296,21 +302,21 @@ await testcase("admin list cleanup removes previously allowed IP",
 [
     R => R
         .get('/verify')
-        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
-        .set('x-original-uri', '/?GoodKey1')
-        .set('x-forwarded-for', '1.2.3.4')
+        .set('x-nipw-key', KEY_LIST_ONE)
+        .set('x-original-uri', `/?${KEY_LIST_ONE[0]}`)
+        .set('x-forwarded-for', IPV4_ONE)
         .expect(200),
     R => R
         .get('/verify')
-        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
-        .set('x-forwarded-for', '1.2.3.4')
+        .set('x-nipw-key', KEY_LIST_ONE)
+        .set('x-forwarded-for', IPV4_ONE)
         .expect(200),
     R => R
         .get('/admin/delete?ip=all&whitelist=')
         .expect(303),
     R => R
         .get('/verify')
-        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
-        .set('x-forwarded-for', '1.2.3.4')
+        .set('x-nipw-key', KEY_LIST_ONE)
+        .set('x-forwarded-for', IPV4_ONE)
         .expect(403),
 ]);
