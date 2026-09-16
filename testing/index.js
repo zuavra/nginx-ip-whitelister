@@ -15,74 +15,80 @@ async function testcase(description, tests, logLevel) {
         try {
             await tests[i](R);
             if (isLast) {
-                console.log(`${description} [PASS#${i + 1}/${tests.length}]`);
+                console.log(`${description} [\x1b[1m\x1b[32mPASS\x1b[0m#${i + 1}/${tests.length}]`);
             }
         } catch (err) {
-            console.log(`${description} [FAIL@${i + 1}/${tests.length}]: ${err.message}`)
+            console.log(`${description} [\x1b[1m\x1b[31mFAIL\x1b[0m@${i + 1}/${tests.length}]: ${err.message}`)
             break;
         }
     }
 }
 
-await testcase("/approve responds 200",
+await testcase("explicit approve gets 200",
 [
     R => R
         .get('/approve')
         .expect(200, "APPROVED")
 ]);
 
-await testcase("/reject responds 403",
+await testcase("explicit reject gets 403",
 [
     R => R
         .get('/reject')
         .expect(403, "REJECTED")
 ]);
 
-await testcase("/ responds 404",
+await testcase("root path gets 404",
 [
     R => R
         .get('/')
         .expect(404, "NOT FOUND")
 ]);
 
-await testcase("random path responds 404",
+await testcase("random path gets 404",
 [
     R => R
         .get('/' + (Math.random() + 1).toString(36).substring(7))
         .expect(404, "NOT FOUND")
 ]);
 
-await testcase("POST method responds 405",
+await testcase("POST method gets 405",
 [
     R => R
         .post('/')
         .expect(405, "METHOD NOT ALLOWED")
 ]);
 
-await testcase("/verify without config responds 200",
+await testcase("request without any config gets allowed",
 [
     R => R
         .get('/verify')
         .expect(200)
 ]);
 
-await testcase("/verify with legacy netmask-allow header responds 403",
+await testcase("legacy netmask-allow header denies good requests",
 [
     R => R
         .get('/verify')
-        .set('x-nipw-netmask-allow', '8.8.8.8/24')
+        .set('x-nipw-netmask-allow', 'no blank')
+        .set('x-forwarded-for', '1.2.3.4')
+        .set('x-original-uri', '/?GoodKey3')
+        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
         .expect(403)
 ]);
 
-await testcase("/verify with legacy netmask-deny header responds 403",
+await testcase("legacy netmask-deny header denies good requests",
 [
     R => R
         .get('/verify')
-        .set('x-nipw-netmask-deny', '8.8.8.8/24')
+        .set('x-nipw-netmask-deny', 'not blank')
+        .set('x-forwarded-for', '1.2.3.4')
+        .set('x-original-uri', '/?GoodKey3')
+        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
         .expect(403)
 ]);
 
-await testcase("/verify with good key responds 200",
+await testcase("request with good key gets allowed",
 [
     R => R
         .get('/verify')
@@ -91,7 +97,7 @@ await testcase("/verify with good key responds 200",
         .expect(200)
 ]);
 
-await testcase("/verify with bad key responds 403",
+await testcase("request with bad key gets denied",
 [
     R => R
         .get('/verify')
@@ -100,7 +106,7 @@ await testcase("/verify with bad key responds 403",
         .expect(403)
 ]);
 
-await testcase('/verify with same IP after good key responds 200',
+await testcase('same IP after good key gets allowed',
 [
     R => R.get('/verify')
             .set('x-forwarded-for', '1.2.3.4')
@@ -111,10 +117,10 @@ await testcase('/verify with same IP after good key responds 200',
             .set('x-forwarded-for', '1.2.3.4')
             .set('x-original-uri', '/')
             .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
-            .expect(200)
+            .expect(200),
 ]);
 
-await testcase("/verify with bad key but IP is excluded responds 200",
+await testcase("request with bad key gets allowed if IP is excluded",
 [
     R => R
         .get('/verify')
@@ -123,6 +129,102 @@ await testcase("/verify with bad key but IP is excluded responds 200",
         .set('x-forwarded-for', '1.2.3.4')
         .set('x-nipw-ip-exclude', '1.2.3.4')
         .expect(200)
+]);
+
+await testcase("request with no key gets allowed if IP is excluded",
+[
+    R => R
+        .get('/verify')
+        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
+        .set('x-original-uri', '/')
+        .set('x-forwarded-for', '1.2.3.4')
+        .set('x-nipw-ip-exclude', '1.2.3.4')
+        .expect(200)
+]);
+
+await testcase("request with good key gets allowed if IP is excluded",
+[
+    R => R
+        .get('/verify')
+        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
+        .set('x-original-uri', '/?GoodKey1')
+        .set('x-forwarded-for', '1.2.3.4')
+        .set('x-nipw-ip-exclude', '1.2.3.4')
+        .expect(200)
+]);
+
+await testcase("key isolation is on by default",
+[
+    R => R
+        .get('/verify')
+        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
+        .set('x-original-uri', '/?GoodKey2')
+        .set('x-forwarded-for', '1.2.3.4')
+        .expect(200),
+    R => R
+        .get('/verify')
+        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
+        .set('x-original-uri', '/?GoodKey2')
+        .set('x-forwarded-for', '5.6.7.8')
+        .expect(403),
+    
+]);
+
+await testcase("key isolation disabled allows key reuse",
+[
+    R => R
+        .get('/verify')
+        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
+        .set('x-original-uri', '/?GoodKey2')
+        .set('x-forwarded-for', '1.2.3.4')
+        .set('x-nipw-key-isolation', 'disabled')
+        .expect(200),
+    R => R
+        .get('/verify')
+        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
+        .set('x-original-uri', '/?GoodKey2')
+        .set('x-forwarded-for', '5.6.7.8')
+        .set('x-nipw-key-isolation', 'disabled')
+        .expect(200),
+]);
+
+await testcase("IP whitelisted in one list doesn't allow access to another list",
+[
+    R => R
+        .get('/verify?Foo')
+        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
+        .set('x-original-uri', '/?GoodKey2')
+        .set('x-forwarded-for', '1.2.3.4')
+        .expect(200),
+    R => R
+        .get('/verify?Foo')
+        .set('x-forwarded-for', '1.2.3.4')
+        .set('x-original-uri', '/')
+        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
+        .expect(200),
+    R => R
+        .get('/verify?Bar')
+        .set('x-forwarded-for', '1.2.3.4')
+        .set('x-original-uri', '/')
+        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
+        .expect(403),
+]);
+
+await testcase("once whitelisted, IP passes config with different keys even with bad key",
+[
+    R => R
+        .get('/verify')
+        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
+        .set('x-original-uri', '/?GoodKey2')
+        .set('x-forwarded-for', '1.2.3.4')
+        .expect(200),
+    R => R
+        .get('/verify')
+        .set('x-nipw-key', ['DifferentKeyA', 'DifferentKeyB'])
+        .set('x-original-uri', '/?BadKeyAltogether')
+        .set('x-forwarded-for', '1.2.3.4')
+        .set('x-original-uri', '/')
+        .expect(200),
 ]);
 
 // key isolation
