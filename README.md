@@ -2,7 +2,9 @@
 
 This app (called **NIW** in the rest of this page) is a forward authenticator written in Node.js that can be used with a reverse proxy (Nginx, Caddy are officially supported) to whitelist a client IP temporarily when a key is presented in the URL.
 
-NIW can run as a standalone Node app or as a hardened (distroless Node) container image. The app is entirely hand-coded (no AI), it's designed to be as simple as possible, uses the least amount of NPM modules with zero extra dependencies, and runs entirely in memory.
+NIW can run as a standalone Node app or as a hardened (distroless Node) container image. The app is designed to be as simple as possible, uses the least amount of NPM modules with zero extra dependencies, is tested against a suite of API tests, and runs entirely in memory.
+
+The app, the tests and the documentation are entirely hand-written (no AI-written contributions) but AI is used to examine the code and make suggestions for improving the quality and to detect security issues.
 
 > ℹ️ Note: it has "Nginx" in the name because it started out as an Nginx companion app but nowadays more proxies are supported and you can find configuration examples below. If you make it work with other reverse proxies you are welcome to open an enhancement suggestion and describe your configuration.
 
