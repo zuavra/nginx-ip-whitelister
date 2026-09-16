@@ -269,6 +269,48 @@ await testcase("logout denies and removes previously allowed IP",
         .expect(403),
 ]);
 
+await testcase("admin IP delete removes previously allowed IP",
+[
+    R => R
+        .get('/verify')
+        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
+        .set('x-original-uri', '/?GoodKey1')
+        .set('x-forwarded-for', '1.2.3.4')
+        .expect(200),
+    R => R
+        .get('/verify')
+        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
+        .set('x-forwarded-for', '1.2.3.4')
+        .expect(200),
+    R => R
+        .get('/admin/delete?ip=1.2.3.4&whitelist=')
+        .expect(303),
+    R => R
+        .get('/verify')
+        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
+        .set('x-forwarded-for', '1.2.3.4')
+        .expect(403),
+]);
 
-// key isolation
-// different whitelists
+await testcase("admin list cleanup removes previously allowed IP",
+[
+    R => R
+        .get('/verify')
+        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
+        .set('x-original-uri', '/?GoodKey1')
+        .set('x-forwarded-for', '1.2.3.4')
+        .expect(200),
+    R => R
+        .get('/verify')
+        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
+        .set('x-forwarded-for', '1.2.3.4')
+        .expect(200),
+    R => R
+        .get('/admin/delete?ip=all&whitelist=')
+        .expect(303),
+    R => R
+        .get('/verify')
+        .set('x-nipw-key', ['GoodKey1', 'GoodKey2', 'GoodKey3'])
+        .set('x-forwarded-for', '1.2.3.4')
+        .expect(403),
+]);
