@@ -163,7 +163,7 @@ That backend is handled by the NIW app – which needs to be running at an addre
 
 Whenever NIW sees a valid access key in a request URL it adds the visitor's IP address to a whitelist. Once that happens, all requests from the IP (which usually means everybody and everything in their LAN) will be allowed through.
 
-You can optionally configure more conditions for the visitors such as IP netmasks, GeoIP, TOTP codes etc.
+You can optionally configure more conditions for the visitors such as IP ranges, GeoIP, TOTP codes etc.
 
 ## 5. How to run the whitelister 
 
@@ -203,7 +203,7 @@ docker run \
   ghcr.io/zuavra/nginx-ip-whitelister:latest
 ```
 
-Alternatively please see the `docker-compose.yaml` file to run the container via Docker compose. Download the compose file then run `docker-compose up -d` from the same directory.
+Alternatively please see the `docker-compose.yaml` file to run the container via Docker compose. Download the compose file then run `docker compose up -d` from the same directory.
 
 In both these cases the container will open a port on the host's network interface. Use this if your reverse proxy is able to reach that port directly.
 
