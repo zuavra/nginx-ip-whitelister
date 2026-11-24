@@ -6,7 +6,7 @@ export default
     }
 
     const now = dateFactory().getTime();
-    res.local.whitelist.set(res.local.remoteIP, {
+    res.local.whitelist.set(res.local.forwardedIP, {
         createdAt: now,
         lastModifiedAt: now,
         usedKey: res.local.visitorKey,

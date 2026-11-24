@@ -5,7 +5,7 @@ export default
         return;
     }
 
-    const entry = res.local.whitelist.get(res.local.remoteIP);
+    const entry = res.local.whitelist.get(res.local.forwardedIP);
     if (!entry) {
         res.local.logger.queue('IP not found.');
         return;
@@ -15,7 +15,7 @@ export default
     const fixedTimeout = res.local.fixedTimeout || 72e5;
     const slidingTimeout = res.local.slidingTimeout || 3e5;
     if (now - entry.createdAt < fixedTimeout && now - entry.lastModifiedAt < slidingTimeout) {
-        res.local.whitelist.set(res.local.remoteIP,
+        res.local.whitelist.set(res.local.forwardedIP,
             Object.assign({}, entry, {
                 lastModifiedAt: now,
                 fixedTimeout,
@@ -29,7 +29,7 @@ export default
     }
 
     // entry has expired, remove from whitelist, will resume normal checks
-    res.local.whitelist.delete(res.local.remoteIP);
+    res.local.whitelist.delete(res.local.forwardedIP);
     res.local.logger.elevate('notice');
     res.local.logger.queue('IP found but expired, deleted.');
 };

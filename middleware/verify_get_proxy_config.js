@@ -5,7 +5,7 @@ export default
     const getHeaders = headerName => Array.isArray(allHeaders[headerName]) ? allHeaders[headerName] : [];
     // extract and preserve essential proxy parameters
     res.local.originalURI = getHeaders('x-original-uri')[0] || '';
-    res.local.remoteIP = getHeaders('x-forwarded-for')[0] || '';
+    res.local.forwardedIP = getHeaders('x-forwarded-for')[0] || '';
     // extract and preserve optional proxy parameters
     res.local.accessKeys = getHeaders('x-nipw-key');
     res.local.keyIsolation = (String(getHeaders('x-nipw-key-isolation')[0]).toLowerCase() !== 'disabled');
@@ -23,6 +23,6 @@ export default
     res.local.visitorTOTP = params[2] || '';
     // apply relevant values to logger
     res.local.accessKeys.map(res.local.logger.addScrubString);
-    res.local.logger.addMeta('forwarded_ip', res.local.remoteIP);
+    res.local.logger.addMeta('forwarded_ip', res.local.forwardedIP);
     res.local.logger.addMeta('orig_uri', res.local.originalURI, true);
 };

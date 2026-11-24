@@ -12,7 +12,7 @@ export default
         for (let i = 0; i < exclusions.length; i++) {
             const netmask = exclusions[i];
             const range = netmaskFactory(netmask);
-            if (range.contains(res.local.remoteIP)) {
+            if (range.contains(res.local.forwardedIP)) {
                 res.statusCode = 200;
                 res.local.logger.debug(`IP matched exclusion range ${netmask}. Allowed.`);
                 return res.end();

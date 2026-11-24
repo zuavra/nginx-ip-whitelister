@@ -5,9 +5,9 @@ export default (_, res) => {
 
     if ('logout' === res.local.visitorKey.toLowerCase()) {
         res.local.logger.queue('Logout used.');
-        const entry = res.local.whitelist.get(res.local.remoteIP);
+        const entry = res.local.whitelist.get(res.local.forwardedIP);
         if (entry) {
-            res.local.whitelist.delete(res.local.remoteIP);
+            res.local.whitelist.delete(res.local.forwardedIP);
             res.local.logger.elevate('notice');
             res.local.logger.queue('IP deleted.');
         }

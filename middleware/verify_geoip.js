@@ -5,12 +5,12 @@ export default
     const deny = res.local.badCountries;
 
     if ((allow.length || deny.length)) {
-        if (isPrivateIP(res.local.remoteIP)) {
+        if (isPrivateIP(res.local.forwardedIP)) {
             res.local.logger.queue('Private IP, skips country check.');
             return;
         }
 
-        const geoLocation = geoIP.get(res.local.remoteIP);
+        const geoLocation = geoIP.get(res.local.forwardedIP);
         const countryCode = geoLocation?.country?.iso_code;
 
         if (countryCode) {
