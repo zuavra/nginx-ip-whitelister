@@ -23,14 +23,14 @@ export default
                     return;
                 }
                 res.statusCode = 403;
-                res.local.logger.debug('No allowed country matched. Rejected.');
+                res.local.logger.warn('No allowed country matched. Rejected.');
                 return res.end();
             }
 
             if (deny.length) {
                 if (deny.indexOf(countryCode) != -1) {
                     res.statusCode = 403;
-                    res.local.logger.debug(`IP matched denied country ${countryCode}. Rejected.`);
+                    res.local.logger.warn(`IP matched denied country ${countryCode}. Rejected.`);
                     return res.end();
                 }
             }
